@@ -7,7 +7,7 @@ int test_db_connection();
 
 int main()
 {
-    // test db connection
+    // test db connection1
     test_db_connection();
 
     return 0;
