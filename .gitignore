@@ -1,0 +1,4 @@
+# qtcreator generated files
+*.creator.user*
+*.pro.user*
+servicebox.pro.user
