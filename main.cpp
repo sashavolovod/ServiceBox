@@ -1,8 +1,7 @@
-
 #include <QDebug>
 
 int main()
 {
-    qDebug() <<"opened" ;
+    qDebug() <<"hello world" ;
     return 0;
 }
