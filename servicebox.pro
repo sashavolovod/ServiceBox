@@ -1,7 +1,16 @@
-QT       += core gui sql
+QT       += core gui sql widgets
 
-TARGET = test-proqt
-TEMPLATE = app
+TARGET = servicebox
+TEMPLATE += app
 
 SOURCES += main.cpp\
-    db.cpp
+    db.cpp \
+    mainwindow.cpp \
+    runguard.cpp
+
+RESOURCES += \
+    systray.qrc
+
+HEADERS += \
+    mainwindow.h \
+    runguard.h
