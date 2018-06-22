@@ -1,10 +1,4 @@
-#include <QtGui>
-#include <QAction>
-#include <QMenu>
-#include <QMessageBox>
-#include <QHBoxLayout>
-#include <QHeaderView>
-#include "mainwindow.h"
+#include "common.h"
 
 MainWindow::MainWindow()
 {
@@ -24,7 +18,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
     if (trayIcon->isVisible()) {
         QMessageBox::information(this, "Учет ремонта оборудования",
                                  "Учет ремонта оборудования продолжит работать в качестве фоновой задачи. "
-                                 "Для завершения работы монитора выберете пункт <b>Выход</b> из контекстного меню");
+                                 "Для завершения работы программы выберете пункт <b>Выход</b> из контекстного меню");
         hide();
         event->ignore();
     }
@@ -98,13 +92,25 @@ void MainWindow::createUI()
 */
     // создание редактора для вывода журнала работы приложения
     teLog = new QTextEdit(this);
-    setCentralWidget(teLog); // главный виджет окна
+
+    table_view = new QTableView;
+    model = new ServiceTableModel;
+    load_data(model);
+
+    table_view->setModel(model);
+    table_view->horizontalHeader()->setStretchLastSection(true);
+
+    splitter = new QSplitter;
+
+    splitter->addWidget(table_view);
+    splitter->addWidget(teLog);
+
+    setCentralWidget(splitter); // главный виджет окна
 /*
     // настройка строки состояния
     label = new QLabel("Нажмите кнопку <b>Старт</b> для начала проверки");
     statusBar()->addWidget(label,1);
 */
-
 
     // добавление элементов в панель инструментов
 /*
@@ -150,4 +156,26 @@ void MainWindow::aboutQt()
 void MainWindow::about()
 {
     QMessageBox::information(this, tr("О программе"),tr("<b>Учет ремонта оборудования</b> - программа для учета ремонта оборудования  ИнЦ.<br><br><b>Разработчик:</b> инженер-программист ИнЦ Воловод А.А.<br><b>Тел:</b> 66-16"));
+}
+
+void MainWindow::load_data(ServiceTableModel *model)
+{
+    DbHelper dbHelper;
+    QSqlDatabase db = dbHelper.getDb();
+    if(db.isOpen())
+    {
+        qDebug() << "connect\n";
+        db.close();
+        qDebug() << "close\n";
+    }
+
+    qDebug() << "done\n";
+
+
+
+}
+
+void saveSettings()
+{
+
 }

@@ -1,12 +1,10 @@
-#include <QtWidgets/QApplication>
-#include <QMessageBox>
-#include "mainwindow.h"
-#include "runguard.h"
-
-int test_db_connection();
+#include "common.h"
 
 int main(int argc, char *argv[])
 {
+    QCoreApplication::setOrganizationName("gefest");
+    QCoreApplication::setOrganizationDomain("gefest.org");
+    QCoreApplication::setApplicationName("ServiceBox");
     QApplication app(argc, argv);
 
     RunGuard guard( "servicebox.app" );

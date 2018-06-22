@@ -37,3 +37,8 @@ create table equipment_service_details
     , equipment_users int references equipment_users(equipment_user_id) not null
     , note varchar(1024) not null
 );
+
+ALTER TABLE equipment_services
+   ADD COLUMN equipment_id integer references equipments(equipment_id); 
+
+

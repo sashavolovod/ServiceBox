@@ -7,6 +7,9 @@
 #include <QTextEdit>
 #include <QtCore>
 #include <QMenuBar>
+#include <QTableView>
+#include <QSplitter>
+#include <servicetablemodel.h>
 
 class MainWindow : public QMainWindow
 {
@@ -14,12 +17,14 @@ class MainWindow : public QMainWindow
 public:
     MainWindow();
     void setVisible(bool visible) Q_DECL_OVERRIDE;
-
     void createUI(); // функция создания графического интерфейса
+
 
 protected:
     void closeEvent(QCloseEvent *event) Q_DECL_OVERRIDE;
     QTextEdit *teLog;    // окно редактирования
+    QTextEdit *teMessage;// окно написания сообщения
+
     QMenuBar *mnuBar;    // главное меню приложения
     QAction *quitAction;
     QAction *actAbout;   // вывод окна о программе
@@ -34,6 +39,12 @@ protected:
 
     QSystemTrayIcon *trayIcon;
     QMenu *trayIconMenu;
+    QTableView *table_view;
+    ServiceTableModel *model;
+    QSplitter *splitter;
+
+    void load_data(ServiceTableModel *model);
+    void saveSettings();
 
 private slots:
     void setIcon();
