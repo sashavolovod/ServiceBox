@@ -2,9 +2,7 @@
 
 ServiceTableModel::ServiceTableModel(QObject *parent /*= 0 */) : QAbstractTableModel(parent)
 {
-    header_data << "Дата" << "Оборудование" << "Неисправность" << "Состояние";
-    list << "one";
-
+    header_data << "№" << "Дата" << "Оборудование" <<  "Состояние";
 }
 
 ServiceTableModel::~ServiceTableModel() {}
@@ -14,21 +12,21 @@ QVariant ServiceTableModel::data(const QModelIndex &index, int role) const
     if (!index.isValid())
         return QVariant();
 
-    if (index.row() >= list.size())
+    if (index.row() >= serviceList->size())
         return QVariant();
 
     // для каждого столбца возвращаем нужные данные
-    if (role == Qt::DisplayRole || role == Qt::EditRole){
+    if (role == Qt::DisplayRole || role == Qt::EditRole)
+    {
         if (index.column() == 0 )
-            return "one"; /* list.at(index.row()).fileName; */
+            return serviceList->at(index.row()).id;
         if (index.column() == 1 )
-            return "two"; // QString ("%1 KB").arg(list.at(index.row()).pmc.WorkingSetSize /1024);
+            return serviceList->at(index.row()).date;
         if (index.column() == 2 )
-            return "three"; // list.at(index.row()).md5sum;
+            return serviceList->at(index.row()).name;
         if (index.column() == 3 )
-            return "не исправ"; // list.at(index.row()).md5sum;
+            return serviceList->at(index.row()).status;
     }
-
     return QVariant();
 }
 
@@ -38,7 +36,7 @@ bool ServiceTableModel::setData(const QModelIndex &index, const QVariant &value,
 }
 int ServiceTableModel::rowCount(const QModelIndex &parent) const
 {
-    return list.size(); // размер списка - это количество строк
+    return serviceList->size(); // размер списка - это количество строк
 }
 
 int ServiceTableModel::columnCount(const QModelIndex &parent)    const
@@ -65,4 +63,14 @@ Qt::ItemFlags ServiceTableModel::flags(const QModelIndex &index) const
         return Qt::ItemIsSelectable;
 
    return QAbstractItemModel::flags(index);
+}
+
+void ServiceTableModel::setList(QList<Service> *list)
+{
+    this->serviceList = list;
+}
+
+int ServiceTableModel::getId(int i)
+{
+
 }

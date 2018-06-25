@@ -11,7 +11,8 @@ SOURCES += main.cpp\
     aes.cpp \
     logindialog.cpp \
     aesqt.cpp \
-    dbhelper.cpp
+    dbhelper.cpp \
+    service.cpp
 
 RESOURCES += \
     systray.qrc
@@ -25,7 +26,8 @@ HEADERS += \
     aesqt.h \
     logindialog.h \
     common.h \
-    dbhelper.h
+    dbhelper.h \
+    service.h
 
 FORMS += \
     logindialog.ui

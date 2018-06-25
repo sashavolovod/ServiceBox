@@ -26,6 +26,9 @@ int main(int argc, char *argv[])
     }
     QApplication::setQuitOnLastWindowClosed(false);
 
+    DbHelper dbHelper;
+    dbHelper.getDb().close();
+
     MainWindow window;
     window.show();
 

@@ -1,15 +1,12 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <QSystemTrayIcon>
-#include <QMainWindow>
-#include <QDialog>
-#include <QTextEdit>
-#include <QtCore>
-#include <QMenuBar>
-#include <QTableView>
-#include <QSplitter>
-#include <servicetablemodel.h>
+#include "servicetablemodel.h"
+#include "service.h"
+#include "common.h"
+
+class ServiceTableModel;
+
 
 class MainWindow : public QMainWindow
 {
@@ -34,6 +31,8 @@ protected:
     QAction *maximizeAction;
     QAction *restoreAction;
 
+    QList<Service> serviceList;
+
     void createActions();
     void createTrayIcon();
 
@@ -43,13 +42,15 @@ protected:
     ServiceTableModel *model;
     QSplitter *splitter;
 
-    void load_data(ServiceTableModel *model);
+    void load_data();
     void saveSettings();
+    void updateDetail(int id);
 
 private slots:
     void setIcon();
     void about();   // вывод сообщения о программе
     void aboutQt(); // вывод информации о библиотеке Qt
+    void onSelectionChanged(const QItemSelection &, const QItemSelection &);
 };
 
 #endif //MAINWINDOW_H

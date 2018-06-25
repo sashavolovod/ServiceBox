@@ -84,7 +84,6 @@ void MainWindow::createUI()
     setLayout(layout);
     */
 
-
     // создание панели инструментов
 /*
     toolbar = new QToolBar();
@@ -94,14 +93,17 @@ void MainWindow::createUI()
     teLog = new QTextEdit(this);
 
     table_view = new QTableView;
-    model = new ServiceTableModel;
-    load_data(model);
-
+    ServiceTableModel *model = new ServiceTableModel;
+    model->setList(&serviceList);
+    load_data();
     table_view->setModel(model);
+    table_view->setColumnHidden(0,true);
     table_view->horizontalHeader()->setStretchLastSection(true);
+    table_view->setSelectionBehavior(QAbstractItemView::SelectRows);
+
+    connect(table_view->selectionModel(), SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)), this, SLOT(onSelectionChanged(const QItemSelection &, const QItemSelection &)));
 
     splitter = new QSplitter;
-
     splitter->addWidget(table_view);
     splitter->addWidget(teLog);
 
@@ -111,7 +113,6 @@ void MainWindow::createUI()
     label = new QLabel("Нажмите кнопку <b>Старт</b> для начала проверки");
     statusBar()->addWidget(label,1);
 */
-
     // добавление элементов в панель инструментов
 /*
     toolbar->addAction(actStartScan);
@@ -158,24 +159,84 @@ void MainWindow::about()
     QMessageBox::information(this, tr("О программе"),tr("<b>Учет ремонта оборудования</b> - программа для учета ремонта оборудования  ИнЦ.<br><br><b>Разработчик:</b> инженер-программист ИнЦ Воловод А.А.<br><b>Тел:</b> 66-16"));
 }
 
-void MainWindow::load_data(ServiceTableModel *model)
+void MainWindow::load_data()
 {
-    DbHelper dbHelper;
-    QSqlDatabase db = dbHelper.getDb();
+    QSqlDatabase db = QSqlDatabase::database();
+    QString sql("SELECT "
+                  "equipment_service_id as id, "
+                  "equipment_services_date as date, "
+                  "equipment_name as name, "
+                  "status "
+                "FROM "
+                  "equipments inner join equipment_services on equipment_services.equipment_id = equipments.equipment_id "
+                "ORDER BY date; "
+                );
+    QSqlQuery query;
+
+    db.open();
     if(db.isOpen())
     {
-        qDebug() << "connect\n";
+        query.exec(sql);
+        serviceList.clear();
+        while (query.next())
+        {
+            Service s;
+            s.id = query.value(0).toInt();
+            s.date = query.value(1).toDateTime();
+            s.name = query.value(2).toString();
+            s.status = query.value(3).toInt();
+            serviceList << s;
+        }
+
         db.close();
-        qDebug() << "close\n";
     }
-
-    qDebug() << "done\n";
-
-
-
 }
 
 void saveSettings()
 {
 
+}
+
+void MainWindow::onSelectionChanged(const QItemSelection &sel, const QItemSelection &desel)
+{
+    int i = table_view->currentIndex().row();
+    QModelIndex index = table_view->model()->index(i, 0);
+    int id = index.data().toInt();
+    updateDetail(id);
+}
+
+void MainWindow::updateDetail(int id)
+{
+    QSqlDatabase db = QSqlDatabase::database();
+    QString sql("SELECT "
+                "  equipment_service_detail id, "
+                "  equipment_user_name user_name, "
+                "  note, "
+                "  date "
+                "FROM equipment_service_details INNER JOIN equipment_users on   equipment_user_id = equipment_users "
+                "WHERE equipment_services_id = :id "
+                "ORDER BY date; "
+                );
+    QSqlQuery query;
+
+    db.open();
+    if(db.isOpen())
+    {
+        query.prepare(sql);
+        query.bindValue(":id", id);
+        query.exec();
+        teLog->clear();
+        while (query.next())
+        {
+
+            QString str = QString("%1 [%2]: %3")
+                    .arg(query.value(1).toString())
+                    .arg(query.value(3).toString())
+                    .arg(query.value(2).toString());
+
+            teLog->append(str);
+        }
+       query.clear();
+       db.close();
+    }
 }
