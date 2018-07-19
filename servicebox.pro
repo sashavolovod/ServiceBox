@@ -12,7 +12,10 @@ SOURCES += main.cpp\
     logindialog.cpp \
     aesqt.cpp \
     dbhelper.cpp \
-    service.cpp
+    service.cpp \
+    messageedit.cpp \
+    addservicedialog.cpp \
+    comboboxitem.cpp
 
 RESOURCES += \
     systray.qrc
@@ -27,7 +30,11 @@ HEADERS += \
     logindialog.h \
     common.h \
     dbhelper.h \
-    service.h
+    service.h \
+    messageedit.h \
+    addservicedialog.h \
+    comboboxitem.h
 
 FORMS += \
-    logindialog.ui
+    logindialog.ui \
+    addservicedialog.ui

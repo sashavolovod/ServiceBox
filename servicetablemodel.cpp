@@ -21,11 +21,22 @@ QVariant ServiceTableModel::data(const QModelIndex &index, int role) const
         if (index.column() == 0 )
             return serviceList->at(index.row()).id;
         if (index.column() == 1 )
-            return serviceList->at(index.row()).date;
+            return serviceList->at(index.row()).date.toString("dd.MM.yyyy");
         if (index.column() == 2 )
             return serviceList->at(index.row()).name;
         if (index.column() == 3 )
-            return serviceList->at(index.row()).status;
+        {
+            switch (serviceList->at(index.row()).status)
+            {
+                case 0:
+                    return "исправно";
+                case 1:
+                    return "неисправно";
+                case 2:
+                    return "проверяется";
+            }
+        }
+
     }
     return QVariant();
 }
@@ -72,5 +83,5 @@ void ServiceTableModel::setList(QList<Service> *list)
 
 int ServiceTableModel::getId(int i)
 {
-
+    serviceList->at(i).id;
 }

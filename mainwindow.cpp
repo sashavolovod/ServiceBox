@@ -1,4 +1,5 @@
 #include "common.h"
+#include "messageedit.h"
 
 MainWindow::MainWindow()
 {
@@ -91,21 +92,43 @@ void MainWindow::createUI()
 */
     // создание редактора для вывода журнала работы приложения
     teLog = new QTextEdit(this);
+    teLog->setReadOnly(true);
+    teMessage = new MessageEdit(this);
+    btnReady = new QPushButton("Выполнено", this);
+    connect(btnReady, SIGNAL (pressed()), this, SLOT (changeStatus()));
 
     table_view = new QTableView;
     ServiceTableModel *model = new ServiceTableModel;
-    model->setList(&serviceList);
     load_data();
+    getComboBoxItems();
+
+    model->setList(&serviceList);
     table_view->setModel(model);
     table_view->setColumnHidden(0,true);
+    table_view->setColumnWidth(1,100);
+    table_view->setColumnWidth(2,150);
     table_view->horizontalHeader()->setStretchLastSection(true);
     table_view->setSelectionBehavior(QAbstractItemView::SelectRows);
-
     connect(table_view->selectionModel(), SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)), this, SLOT(onSelectionChanged(const QItemSelection &, const QItemSelection &)));
+    table_view->selectRow(0);
 
     splitter = new QSplitter;
+
     splitter->addWidget(table_view);
-    splitter->addWidget(teLog);
+    rightWidget = new QWidget();
+    vLayout = new QVBoxLayout();
+    hLayout = new QHBoxLayout();
+
+    rightWidget->setLayout(vLayout);
+    vLayout->addWidget(teLog, 1);
+    teMessage->setFixedHeight(75);
+
+    vLayout->addLayout(hLayout);
+    hLayout->addWidget(teMessage);
+    hLayout->addWidget(btnReady);
+
+    splitter->addWidget(rightWidget);
+    splitter->setSizes(QList<int>({150, INT_MAX}));
 
     setCentralWidget(splitter); // главный виджет окна
 /*
@@ -145,6 +168,12 @@ void MainWindow::createUI()
     resize(800, 600);
     setWindowTitle("Учет ремонта оборудования");
     setWindowIcon(QIcon(":/images/antivirus.ico"));
+
+    timer = new QTimer(this);
+    connect(timer, SIGNAL(timeout()), this, SLOT(update()));
+    timer->start(1000);
+
+    //addService();
 }
 
 // вывод собщения о библиотеке Qt
@@ -194,15 +223,11 @@ void MainWindow::load_data()
 
 void saveSettings()
 {
-
 }
 
 void MainWindow::onSelectionChanged(const QItemSelection &sel, const QItemSelection &desel)
 {
-    int i = table_view->currentIndex().row();
-    QModelIndex index = table_view->model()->index(i, 0);
-    int id = index.data().toInt();
-    updateDetail(id);
+    updateDetail(getSelectedId());
 }
 
 void MainWindow::updateDetail(int id)
@@ -224,19 +249,148 @@ void MainWindow::updateDetail(int id)
     {
         query.prepare(sql);
         query.bindValue(":id", id);
-        query.exec();
+        if(query.exec()==false)
+            QMessageBox::critical(this, "Ошибка получения информации с базы данных", query.lastError().text());;
+
         teLog->clear();
         while (query.next())
         {
-
             QString str = QString("%1 [%2]: %3")
                     .arg(query.value(1).toString())
-                    .arg(query.value(3).toString())
+                    .arg(query.value(3).toDateTime().toString("dd.MM.yyyy hh:mm:ss"))
                     .arg(query.value(2).toString());
 
             teLog->append(str);
+            teLog->append("");
         }
-       query.clear();
-       db.close();
+        query.clear();
+        db.close();
     }
+}
+
+bool MainWindow::sendMessage(QString str)
+{
+    QSqlDatabase db = QSqlDatabase::database();
+    QString sql("insert into equipment_service_details(equipment_services_id, equipment_users, note) VALUES  (:id, :user_id, :note);");
+    QSqlQuery query;
+    bool result;
+
+    int i = table_view->currentIndex().row();
+    QModelIndex index = table_view->model()->index(i, 0);
+    int id = index.data().toInt();
+
+    db.open();
+    if(db.isOpen())
+    {
+        query.prepare(sql);
+        query.bindValue(":id", id);
+        query.bindValue(":user_id", 1);
+        query.bindValue(":note", str);
+        result = query.exec();
+        if(result == false)
+            QMessageBox::critical(this, "Ошибка сохранения", query.lastError().text());
+        else
+            updateDetail(id);
+    }
+
+    query.clear();
+    db.close();
+    return result;
+}
+
+
+
+void MainWindow::update()
+{
+    updateDetail(getSelectedId());
+}
+
+int MainWindow::getSelectedId()
+{
+    int i = table_view->currentIndex().row();
+    // qDebug() << "i = " << i;
+    QModelIndex index = table_view->model()->index(i, 0);
+    // qDebug() << "index = " << index;
+    return index.data().toInt();
+}
+
+bool MainWindow::changeStatus()
+{
+    int new_status;
+    Service s = serviceList.at(table_view->currentIndex().row());
+    switch (s.status)
+    {
+        case 0:
+            new_status = 1;
+        break;
+        case 1:
+            new_status = 2;
+        break;
+        case 2:
+            new_status = 0;
+        break;
+    }
+
+    QSqlDatabase db = QSqlDatabase::database();
+    QString sql("update equipment_services set status = :status where equipment_service_id = :service_id;");
+    QSqlQuery query;
+    bool result;
+
+    db.open();
+    if(db.isOpen())
+    {
+        query.prepare(sql);
+        query.bindValue(":status", new_status);
+        query.bindValue(":service_id", s.id);
+        result = query.exec();
+        if(result == false)
+            QMessageBox::critical(this, "Ошибка сохранения", query.lastError().text());
+        else
+            load_data();
+    }
+
+    query.clear();
+    db.close();
+    return result;
+}
+
+void MainWindow::getComboBoxItems()
+{
+    QSqlDatabase db = QSqlDatabase::database();
+    QString sql("select equipment_id as id, equipment_type_id as parent_id, equipment_name || ' ( инв. №' ||  equipment_code || ')' as name from equipments order by name;");
+    QSqlQuery query;
+
+    db.open();
+    if(db.isOpen())
+    {
+        query.exec(sql);
+        equpments.clear();
+        while (query.next())
+        {
+            ComboBoxItem item;
+            item.id = query.value(0).toInt();
+            item.parentId = query.value(1).toInt();
+            item.name = query.value(2).toString();
+            equpments << item;
+        }
+        query.clear();
+        query.exec("select equipment_types_id as id, equipment_type_name as name from equipment_types order by name;");
+        groups.clear();
+        while (query.next())
+        {
+            ComboBoxItem item;
+            item.id = query.value(0).toInt();
+            item.parentId = 0;
+            item.name = query.value(1).toString();
+            groups << item;
+        }
+
+        db.close();
+    }
+}
+void MainWindow::addService()
+{
+    AddServiceDialog dialog(&groups, &equpments);
+    dialog.setModal(true);
+    dialog.exec();
 }
