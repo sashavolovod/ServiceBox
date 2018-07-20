@@ -78,7 +78,9 @@ Qt::ItemFlags ServiceTableModel::flags(const QModelIndex &index) const
 
 void ServiceTableModel::setList(QList<Service> *list)
 {
+    beginResetModel();
     this->serviceList = list;
+    endResetModel();
 }
 
 int ServiceTableModel::getId(int i)

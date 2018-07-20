@@ -40,6 +40,9 @@ void MainWindow::createActions()
     actAboutQt = new QAction("О библиотеке Qt...", this);
     connect(actAboutQt, SIGNAL(triggered()), this, SLOT(aboutQt()));
 
+    actAdd = new QAction("Добавить...", this);
+    connect(actAdd, SIGNAL(triggered()), this, SLOT(addService()));
+
     // действия контестное меню
     minimizeAction = new QAction("Свернуть", this);
     connect(minimizeAction, SIGNAL(triggered()), this, SLOT(hide()));
@@ -98,7 +101,7 @@ void MainWindow::createUI()
     connect(btnReady, SIGNAL (pressed()), this, SLOT (changeStatus()));
 
     table_view = new QTableView;
-    ServiceTableModel *model = new ServiceTableModel;
+    model = new ServiceTableModel;
     load_data();
     getComboBoxItems();
 
@@ -147,13 +150,9 @@ void MainWindow::createUI()
     mnuBar = new QMenuBar(this);
     QMenu *mnuFile = new QMenu("Файл");
     mnuFile->addAction(quitAction);
-/*
-    QMenu *mnuService = new QMenu("Сервис");
-    mnuService->addAction(actStartScan);
-    mnuService->addAction(actStopScan);
-    mnuService->addSeparator();
-    mnuService->addAction(actShowSettingDialog);
-*/
+
+    QMenu *mnuOperations = new QMenu("Операции");
+    mnuOperations->addAction(actAdd);
 
     QMenu *mnuHelp = new QMenu("Справка");
     mnuHelp->addAction(actAboutQt);
@@ -161,7 +160,7 @@ void MainWindow::createUI()
     mnuHelp->addAction(actAbout);
 
     mnuBar->addMenu(mnuFile);
-//    mnuBar->addMenu(mnuService);
+    mnuBar->addMenu(mnuOperations);
     mnuBar->addMenu(mnuHelp);
     setMenuBar(mnuBar);
 
@@ -172,8 +171,6 @@ void MainWindow::createUI()
     timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(update()));
     timer->start(1000);
-
-    //addService();
 }
 
 // вывод собщения о библиотеке Qt
@@ -393,4 +390,6 @@ void MainWindow::addService()
     AddServiceDialog dialog(&groups, &equpments);
     dialog.setModal(true);
     dialog.exec();
+    load_data();
+    model->setList(&serviceList);
 }

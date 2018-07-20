@@ -35,6 +35,7 @@ protected:
     QAction *quitAction;
     QAction *actAbout;   // вывод окна о программе
     QAction *actAboutQt; // вывод окна о библиотеке Qt
+    QAction *actAdd;
 
     QPushButton *btnReady;
 
