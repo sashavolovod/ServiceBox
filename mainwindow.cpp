@@ -4,6 +4,16 @@
 MainWindow::MainWindow()
 {
     createUI();
+
+}
+
+MainWindow::~MainWindow()
+{
+    QSettings settings;
+    settings.setValue("vSplitter", vSplitter->saveState());
+    settings.setValue("hSplitter", hSplitter->saveState());
+    settings.setValue("MainWindowsGeometry", saveGeometry());
+    settings.setValue("MainWindowsState", saveState());
 }
 
 void MainWindow::setVisible(bool visible)
@@ -73,26 +83,33 @@ void MainWindow::createTrayIcon()
 // создание элементов управления главного окна
 void MainWindow::createUI()
 {
+    QSettings settings;
+
     createActions();
     createTrayIcon();
     trayIcon->show();
-
-    /*
-    table_view = new QTableView;
-    model = new ProcessTableModel;
-    table_view->setModel(model); // устанавливаем модель
-    table_view->resizeColumnsToContents();
-    table_view->horizontalHeader()->setStretchLastSection(true);
-    QHBoxLayout *layout = new QHBoxLayout(this);
-    layout->addWidget(table_view);
-    setLayout(layout);
-    */
 
     // создание панели инструментов
 /*
     toolbar = new QToolBar();
     addToolBar(toolbar);
 */
+
+    leftVBoxLayout = new QVBoxLayout();
+    filterLayout = new QHBoxLayout();
+
+    hSplitter = new QSplitter(Qt::Horizontal);
+    vSplitter = new QSplitter(Qt::Vertical);
+    leftWidget = new QWidget();
+    rightWidget = new QWidget();
+    vLayout = new QVBoxLayout();
+    hLayout = new QHBoxLayout();
+    tmpWidget = new QWidget;
+
+    leFilter = new QLineEdit();
+    chkOnlyNotWorking = new QCheckBox;
+    chkOnlyNotWorking->setText("Только неисправные");
+
     // создание редактора для вывода журнала работы приложения
     teLog = new QTextEdit(this);
     teLog->setReadOnly(true);
@@ -115,12 +132,11 @@ void MainWindow::createUI()
     connect(table_view->selectionModel(), SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)), this, SLOT(onSelectionChanged(const QItemSelection &, const QItemSelection &)));
     table_view->selectRow(0);
 
-    splitter = new QSplitter;
-
-    splitter->addWidget(table_view);
-    rightWidget = new QWidget();
-    vLayout = new QVBoxLayout();
-    hLayout = new QHBoxLayout();
+    filterLayout->addWidget(chkOnlyNotWorking);
+    filterLayout->addWidget(leFilter);
+    leftVBoxLayout->addLayout(filterLayout);
+    leftVBoxLayout->addWidget(table_view);
+    leftWidget->setLayout(leftVBoxLayout);
 
     rightWidget->setLayout(vLayout);
     vLayout->addWidget(teLog, 1);
@@ -130,10 +146,14 @@ void MainWindow::createUI()
     hLayout->addWidget(teMessage);
     hLayout->addWidget(btnReady);
 
-    splitter->addWidget(rightWidget);
-    splitter->setSizes(QList<int>({150, INT_MAX}));
+    vSplitter->addWidget(tmpWidget);
+    vSplitter->addWidget(rightWidget);
 
-    setCentralWidget(splitter); // главный виджет окна
+    hSplitter->addWidget(leftWidget);
+    hSplitter->addWidget(vSplitter);
+//    hSplitter->setSizes(QList<int>({150, INT_MAX}));
+
+    setCentralWidget(hSplitter); // главный виджет окна
 /*
     // настройка строки состояния
     label = new QLabel("Нажмите кнопку <b>Старт</b> для начала проверки");
@@ -164,7 +184,11 @@ void MainWindow::createUI()
     mnuBar->addMenu(mnuHelp);
     setMenuBar(mnuBar);
 
-    resize(800, 600);
+    restoreGeometry(settings.value("MainWindowsGeometry").toByteArray());
+    restoreState(settings.value("MainWindowsState","").toByteArray());
+    vSplitter->restoreState(settings.value("vSplitter","").toByteArray());
+    hSplitter->restoreState(settings.value("hSplitter","").toByteArray());
+
     setWindowTitle("Учет ремонта оборудования");
     setWindowIcon(QIcon(":/images/antivirus.ico"));
 
@@ -220,6 +244,7 @@ void MainWindow::load_data()
 
 void saveSettings()
 {
+
 }
 
 void MainWindow::onSelectionChanged(const QItemSelection &sel, const QItemSelection &desel)
@@ -271,11 +296,9 @@ bool MainWindow::sendMessage(QString str)
     QString sql("insert into equipment_service_details(equipment_services_id, equipment_users, note) VALUES  (:id, :user_id, :note);");
     QSqlQuery query;
     bool result;
-
     int i = table_view->currentIndex().row();
     QModelIndex index = table_view->model()->index(i, 0);
     int id = index.data().toInt();
-
     db.open();
     if(db.isOpen())
     {
@@ -289,13 +312,10 @@ bool MainWindow::sendMessage(QString str)
         else
             updateDetail(id);
     }
-
     query.clear();
     db.close();
     return result;
 }
-
-
 
 void MainWindow::update()
 {
@@ -392,4 +412,5 @@ void MainWindow::addService()
     dialog.exec();
     load_data();
     model->setList(&serviceList);
+
 }

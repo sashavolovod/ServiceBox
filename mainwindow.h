@@ -13,6 +13,9 @@
 #include <QString>
 #include <QHBoxLayout>
 #include <QPushButton>
+#include <QLineEdit>
+#include <QCheckBox>
+#include <QSettings>
 
 class ServiceTableModel;
 class MessageEdit;
@@ -22,6 +25,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 public:
     MainWindow();
+    ~MainWindow();
     void setVisible(bool visible) Q_DECL_OVERRIDE;
     void createUI(); // функция создания графического интерфейса
     bool sendMessage(QString str);
@@ -54,10 +58,19 @@ protected:
     QMenu *trayIconMenu;
     QTableView *table_view;
     ServiceTableModel *model;
-    QSplitter *splitter;
+
+    QVBoxLayout *leftVBoxLayout;
+    QHBoxLayout *filterLayout;
+    QCheckBox *chkOnlyNotWorking;
+    QLineEdit *leFilter;
+
+    QSplitter *hSplitter;
+    QSplitter *vSplitter;
     QVBoxLayout *vLayout;
     QHBoxLayout *hLayout;
     QWidget *rightWidget;
+    QWidget *leftWidget;
+    QWidget *tmpWidget;
 
     QTimer *timer;
 

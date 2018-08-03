@@ -38,3 +38,5 @@ HEADERS += \
 FORMS += \
     logindialog.ui \
     addservicedialog.ui
+
+CONFIG += c++11
