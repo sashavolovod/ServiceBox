@@ -24,7 +24,6 @@ class MainWindow : public QMainWindow
 {
     Q_OBJECT
 public:
-
     MainWindow();
     ~MainWindow();
     void setVisible(bool visible) Q_DECL_OVERRIDE;
