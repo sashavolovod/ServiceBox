@@ -2,7 +2,7 @@
 
 ServiceTableModel::ServiceTableModel(QObject *parent /*= 0 */) : QAbstractTableModel(parent)
 {
-    header_data << "№" << "Дата" << "Оборудование" <<  "Состояние";
+    header_data << "№" << "Инв. №" << "Оборудование" <<  "Состояние";
 }
 
 ServiceTableModel::~ServiceTableModel() {}
@@ -21,7 +21,8 @@ QVariant ServiceTableModel::data(const QModelIndex &index, int role) const
         if (index.column() == 0 )
             return serviceList->at(index.row()).id;
         if (index.column() == 1 )
-            return serviceList->at(index.row()).date.toString("dd.MM.yyyy");
+            return serviceList->at(index.row()).code;
+            //return serviceList->at(index.row()).date.toString("dd.MM.yyyy");
         if (index.column() == 2 )
             return serviceList->at(index.row()).name;
         if (index.column() == 3 )
@@ -36,7 +37,6 @@ QVariant ServiceTableModel::data(const QModelIndex &index, int role) const
                     return "проверяется";
             }
         }
-
     }
     return QVariant();
 }
@@ -85,5 +85,5 @@ void ServiceTableModel::setList(QList<Service> *list)
 
 int ServiceTableModel::getId(int i)
 {
-    serviceList->at(i).id;
+    return serviceList->at(i).id;
 }

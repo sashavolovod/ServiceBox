@@ -7,6 +7,7 @@
 #include "common.h"
 #include "comboboxitem.h"
 #include "addservicedialog.h"
+#include "servicedetail.h"
 
 #include <QTimer>
 
@@ -16,6 +17,7 @@
 #include <QLineEdit>
 #include <QCheckBox>
 #include <QSettings>
+#include <QTableWidgetItem>
 
 class ServiceTableModel;
 class MessageEdit;
@@ -48,6 +50,7 @@ protected:
     QAction *restoreAction;
 
     QList<Service> serviceList;
+    QList<ServiceDetail> serviceDetailList;
     QList<ComboBoxItem> groups;
     QList<ComboBoxItem> equpments;
 
@@ -78,7 +81,8 @@ protected:
 
     void saveSettings();
     void updateDetail(int id);
-    int getSelectedId();
+    void updateServiceDetailList(int equipmentId);
+    int  getSelectedId();
     void getComboBoxItems();
 
 protected slots:
@@ -89,6 +93,7 @@ protected slots:
     void update();
     bool changeStatus();
     void addService();
+    void applyFilter();
 };
 
 #endif //MAINWINDOW_H

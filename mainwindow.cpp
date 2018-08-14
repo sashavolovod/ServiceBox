@@ -195,6 +195,11 @@ void MainWindow::createUI()
     timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(update()));
     timer->start(1000);
+
+    //connect(leFilter, SIGNAL(textEdited(const QString &text)), this, SLOT(applyFilter()));
+    connect(leFilter, &QLineEdit::textEdited, this, &MainWindow::applyFilter);
+    connect(chkOnlyNotWorking, &QCheckBox::stateChanged, this, &MainWindow::applyFilter);
+
 }
 
 // вывод собщения о библиотеке Qt
@@ -212,6 +217,7 @@ void MainWindow::about()
 void MainWindow::load_data()
 {
     QSqlDatabase db = QSqlDatabase::database();
+/*
     QString sql("SELECT "
                   "equipment_service_id as id, "
                   "equipment_services_date as date, "
@@ -221,8 +227,22 @@ void MainWindow::load_data()
                   "equipments inner join equipment_services on equipment_services.equipment_id = equipments.equipment_id "
                 "ORDER BY date; "
                 );
+*/
+
     QSqlQuery query;
 
+    QString sql("select "
+                "  e.equipment_id, "
+                "  e.equipment_code, "
+                "  t.equipment_type_name || ' ' || equipment_name as name, "
+                "  max(s.status) as status "
+                "from equipments e inner join equipment_types t on e.equipment_type_id=t.equipment_types_id "
+                "  full outer join equipment_services s on s.equipment_id = e.equipment_id "
+                "group by "
+                "  e.equipment_id, "
+                "  e.equipment_code, "
+                "  name "
+                "order by equipment_id; ");
     db.open();
     if(db.isOpen())
     {
@@ -232,12 +252,11 @@ void MainWindow::load_data()
         {
             Service s;
             s.id = query.value(0).toInt();
-            s.date = query.value(1).toDateTime();
+            s.code = query.value(1).toInt();
             s.name = query.value(2).toString();
             s.status = query.value(3).toInt();
             serviceList << s;
         }
-
         db.close();
     }
 }
@@ -295,7 +314,7 @@ bool MainWindow::sendMessage(QString str)
     QSqlDatabase db = QSqlDatabase::database();
     QString sql("insert into equipment_service_details(equipment_services_id, equipment_users, note) VALUES  (:id, :user_id, :note);");
     QSqlQuery query;
-    bool result;
+    bool result=false;
     int i = table_view->currentIndex().row();
     QModelIndex index = table_view->model()->index(i, 0);
     int id = index.data().toInt();
@@ -351,7 +370,7 @@ bool MainWindow::changeStatus()
     QSqlDatabase db = QSqlDatabase::database();
     QString sql("update equipment_services set status = :status where equipment_service_id = :service_id;");
     QSqlQuery query;
-    bool result;
+    bool result=false;
 
     db.open();
     if(db.isOpen())
@@ -405,6 +424,7 @@ void MainWindow::getComboBoxItems()
         db.close();
     }
 }
+
 void MainWindow::addService()
 {
     AddServiceDialog dialog(&groups, &equpments);
@@ -412,5 +432,67 @@ void MainWindow::addService()
     dialog.exec();
     load_data();
     model->setList(&serviceList);
+}
 
+void MainWindow::updateServiceDetailList(int equipmentId)
+{
+    QSqlDatabase db = QSqlDatabase::database();
+    QString sql(
+                "select "
+                "       equipment_service_id, "
+                "       equipment_services_date, "
+                "       status, "
+                "       max(d.date) "
+                "from "
+                "     equipment_services s inner join equipment_service_details d on s.equipment_service_id=d.equipment_services_id "
+                "where equipment_id = :id "
+                "group by equipment_service_id, equipment_services_date, status; "
+                );
+    QSqlQuery query;
+
+    db.open();
+    if(db.isOpen())
+    {
+        query.prepare(sql);
+        query.bindValue(":id", equipmentId);
+
+        query.exec();
+        serviceDetailList.clear();
+        while (query.next())
+        {
+            ServiceDetail d;
+            d.serviceId = query.value(0).toInt();
+            d.startDate = query.value(1).toDateTime();
+            d.status = query.value(2).toInt();
+            d.endDate = query.value(3).toDateTime();
+            serviceDetailList << d;
+        }
+        query.clear();
+        db.close();
+    }
+}
+
+void MainWindow::applyFilter()
+{
+    QString filter = leFilter->text();
+    for( int i = 0; i < table_view->model()->rowCount(); ++i )
+    {
+        bool match = false;
+        for( int j = 0; j < table_view->model()->columnCount(); ++j )
+        {
+            QString itemText = table_view->model()->data(table_view->model()->index(i,j)).toString();
+            if(itemText.contains(filter))
+            {
+                match = true;
+                break;
+            }
+        }
+
+        if(chkOnlyNotWorking->isChecked())
+        {
+            if(table_view->model()->data(table_view->model()->index(i,3)).toString()=="исправно")
+                match = false;
+        }
+        table_view->setRowHidden( i, !match );
+    }
 }

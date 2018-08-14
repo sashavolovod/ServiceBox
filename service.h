@@ -8,7 +8,7 @@ class Service
 public:
     Service();
     int id;
-    QDateTime date;
+    int code;
     QString name;
     int status;
 };
