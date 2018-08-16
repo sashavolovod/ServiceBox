@@ -1,25 +1,29 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include "servicetablemodel.h"
-#include "service.h"
-#include "messageedit.h"
-#include "common.h"
-#include "comboboxitem.h"
-#include "addservicedialog.h"
-#include "servicedetail.h"
+#include <QtGui>
+#include <QtCore>
 
-#include <QTimer>
-
-#include <QString>
+#include <QMainWindow>
+#include <QSystemTrayIcon>
+#include <QSplitter>
 #include <QHBoxLayout>
 #include <QPushButton>
 #include <QLineEdit>
 #include <QCheckBox>
 #include <QSettings>
 #include <QTableWidgetItem>
+#include <QMenuBar>
+#include <QHeaderView>
 
-class ServiceTableModel;
+#include "servicetablemodel.h"
+#include "servicedetailtablemodel.h"
+#include "service.h"
+#include "messageedit.h"
+#include "comboboxitem.h"
+#include "addservicedialog.h"
+#include "servicedetail.h"
+
 class MessageEdit;
 
 class MainWindow : public QMainWindow
@@ -50,7 +54,7 @@ protected:
     QAction *restoreAction;
 
     QList<Service> serviceList;
-    QList<ServiceDetail> serviceDetailList;
+    QList<ServiceDetail> *serviceDetailList;
     QList<ComboBoxItem> groups;
     QList<ComboBoxItem> equpments;
 
@@ -60,7 +64,9 @@ protected:
     QSystemTrayIcon *trayIcon;
     QMenu *trayIconMenu;
     QTableView *table_view;
+    QTableView *tableDetailView;
     ServiceTableModel *model;
+    ServiceDetailTableModel *detailModel;
 
     QVBoxLayout *leftVBoxLayout;
     QHBoxLayout *filterLayout;

@@ -1,4 +1,16 @@
-#include "common.h"
+#include <QtGui>
+#include <QtCore>
+#include <QtWidgets/QApplication>
+#include <QMessageBox>
+#include <QSettings>
+#include <QSqlDatabase>
+#include <QSqlError>
+#include <QSqlQuery>
+#include <QSystemTrayIcon>
+
+#include "runguard.h"
+#include "dbhelper.h"
+#include "mainwindow.h"
 
 int main(int argc, char *argv[])
 {

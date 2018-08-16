@@ -1,8 +1,8 @@
-#include "common.h"
-#include "messageedit.h"
+#include "mainwindow.h"
 
 MainWindow::MainWindow()
 {
+    serviceDetailList = new QList<ServiceDetail>();
     createUI();
 
 }
@@ -118,19 +118,31 @@ void MainWindow::createUI()
     connect(btnReady, SIGNAL (pressed()), this, SLOT (changeStatus()));
 
     table_view = new QTableView;
-    model = new ServiceTableModel;
+
     load_data();
     getComboBoxItems();
 
-    model->setList(&serviceList);
+    model = new ServiceTableModel(&serviceList);
     table_view->setModel(model);
     table_view->setColumnHidden(0,true);
     table_view->setColumnWidth(1,100);
     table_view->setColumnWidth(2,150);
     table_view->horizontalHeader()->setStretchLastSection(true);
     table_view->setSelectionBehavior(QAbstractItemView::SelectRows);
+
+
+
+    tableDetailView = new QTableView;
+    detailModel = new ServiceDetailTableModel(serviceDetailList);
+    //detailModel->setList();
+
+    tableDetailView->setModel(detailModel);
+    tableDetailView->horizontalHeader()->setStretchLastSection(true);
+    tableDetailView->setSelectionBehavior(QAbstractItemView::SelectRows);
     connect(table_view->selectionModel(), SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)), this, SLOT(onSelectionChanged(const QItemSelection &, const QItemSelection &)));
     table_view->selectRow(0);
+//    connect(table_view->selectionModel(), SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)), this, SLOT(onSelectionChanged(const QItemSelection &, const QItemSelection &)));
+    tableDetailView->selectRow(0);
 
     filterLayout->addWidget(chkOnlyNotWorking);
     filterLayout->addWidget(leFilter);
@@ -146,7 +158,7 @@ void MainWindow::createUI()
     hLayout->addWidget(teMessage);
     hLayout->addWidget(btnReady);
 
-    vSplitter->addWidget(tmpWidget);
+    vSplitter->addWidget(tableDetailView);
     vSplitter->addWidget(rightWidget);
 
     hSplitter->addWidget(leftWidget);
@@ -191,11 +203,11 @@ void MainWindow::createUI()
 
     setWindowTitle("Учет ремонта оборудования");
     setWindowIcon(QIcon(":/images/antivirus.ico"));
-
+/*
     timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(update()));
     timer->start(1000);
-
+*/
     //connect(leFilter, SIGNAL(textEdited(const QString &text)), this, SLOT(applyFilter()));
     connect(leFilter, &QLineEdit::textEdited, this, &MainWindow::applyFilter);
     connect(chkOnlyNotWorking, &QCheckBox::stateChanged, this, &MainWindow::applyFilter);
@@ -268,7 +280,10 @@ void saveSettings()
 
 void MainWindow::onSelectionChanged(const QItemSelection &sel, const QItemSelection &desel)
 {
-    updateDetail(getSelectedId());
+    int equpmentId = getSelectedId();
+    //updateDetail(equpmentId);
+    updateServiceDetailList(equpmentId);
+    qDebug() << serviceDetailList->count();
 }
 
 void MainWindow::updateDetail(int id)
@@ -420,7 +435,6 @@ void MainWindow::getComboBoxItems()
             item.name = query.value(1).toString();
             groups << item;
         }
-
         db.close();
     }
 }
@@ -431,7 +445,7 @@ void MainWindow::addService()
     dialog.setModal(true);
     dialog.exec();
     load_data();
-    model->setList(&serviceList);
+    model->updateData();
 }
 
 void MainWindow::updateServiceDetailList(int equipmentId)
@@ -457,7 +471,8 @@ void MainWindow::updateServiceDetailList(int equipmentId)
         query.bindValue(":id", equipmentId);
 
         query.exec();
-        serviceDetailList.clear();
+
+        serviceDetailList->clear();
         while (query.next())
         {
             ServiceDetail d;
@@ -465,11 +480,12 @@ void MainWindow::updateServiceDetailList(int equipmentId)
             d.startDate = query.value(1).toDateTime();
             d.status = query.value(2).toInt();
             d.endDate = query.value(3).toDateTime();
-            serviceDetailList << d;
+            (*serviceDetailList) << d;
         }
         query.clear();
         db.close();
     }
+    detailModel->updateData();
 }
 
 void MainWindow::applyFilter()

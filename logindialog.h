@@ -1,8 +1,10 @@
 #ifndef LOGINDIALOG_H
 #define LOGINDIALOG_H
+
 #include <QDialog>
 #include <QSettings>
 
+#include "aesqt.h"
 
 #define PASS_PHRASE "top_secret"
 

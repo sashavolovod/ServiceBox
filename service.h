@@ -1,7 +1,7 @@
 #ifndef SERVICE_H
 #define SERVICE_H
 
-#include "common.h"
+#include <QString>
 
 class Service
 {

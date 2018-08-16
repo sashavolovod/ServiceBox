@@ -1,19 +1,17 @@
-#ifndef SERVICETABLEMODEL_H
-#define SERVICETABLEMODEL_H
+#ifndef SERVICEDETAILTABLEMODEL_H
+#define SERVICEDETAILTABLEMODEL_H
 
+#include "servicedetail.h"
 #include <QAbstractTableModel>
-#include "service.h"
+#include <QDebug>
 
-class Service;
-
-class ServiceTableModel : public QAbstractTableModel
+class ServiceDetailTableModel : public QAbstractTableModel
 {
     Q_OBJECT
 public:
-    explicit ServiceTableModel(QList<Service> *list, QObject *parent = 0);
-    ~ServiceTableModel();
 
-
+    explicit ServiceDetailTableModel(QList<ServiceDetail> *list, QObject *parent = 0);
+    ~ServiceDetailTableModel();
 
     QVariant data(const QModelIndex &index, int role) const;
     bool setData(const QModelIndex &index, const QVariant &value, int role);
@@ -24,14 +22,13 @@ public:
     QVariant headerData(int section,Qt::Orientation orientation, int role=Qt::DisplayRole) const;
     Qt::ItemFlags flags(const QModelIndex &index) const;
 
-    void updateData();
-
     int getId(int i);
+    void updateData();
+    QList<ServiceDetail> *serviceDetailList;
 
 protected:
-    QStringList header_data; // список заголовков столбцов
-    QList<Service> *serviceList;    // список, в котором хранятся все данные
 
+    QStringList header_data; // список заголовков столбцов
 };
 
-#endif // SERVICETABLEMODEL_H
+#endif // SERVICEDETAILTABLEMODEL_H

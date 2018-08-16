@@ -1,7 +1,8 @@
 #include "servicetablemodel.h"
 
-ServiceTableModel::ServiceTableModel(QObject *parent /*= 0 */) : QAbstractTableModel(parent)
+ServiceTableModel::ServiceTableModel(QList<Service> *list, QObject *parent /*= 0 */) : QAbstractTableModel(parent)
 {
+    serviceList = list;
     header_data << "№" << "Инв. №" << "Оборудование" <<  "Состояние";
 }
 
@@ -76,10 +77,9 @@ Qt::ItemFlags ServiceTableModel::flags(const QModelIndex &index) const
    return QAbstractItemModel::flags(index);
 }
 
-void ServiceTableModel::setList(QList<Service> *list)
+void ServiceTableModel::updateData()
 {
     beginResetModel();
-    this->serviceList = list;
     endResetModel();
 }
 
@@ -87,3 +87,4 @@ int ServiceTableModel::getId(int i)
 {
     return serviceList->at(i).id;
 }
+

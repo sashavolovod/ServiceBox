@@ -8,6 +8,7 @@ class ServiceDetail
 {
 public:
     ServiceDetail();
+
     int serviceId;
     QDateTime startDate;
     QDateTime endDate;

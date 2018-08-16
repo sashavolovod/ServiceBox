@@ -1,7 +1,13 @@
 #ifndef DBHELPER_H
 #define DBHELPER_H
 
-#include "common.h"
+#include <QSqlDatabase>
+#include <QSqlError>
+#include <QString>
+#include <QSettings>
+#include <QMessageBox>
+
+#include "logindialog.h"
 
 
 class DbHelper
