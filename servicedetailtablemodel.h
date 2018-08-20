@@ -22,7 +22,8 @@ public:
     QVariant headerData(int section,Qt::Orientation orientation, int role=Qt::DisplayRole) const;
     Qt::ItemFlags flags(const QModelIndex &index) const;
 
-    int getId(int i);
+    int getServiceId(int i);
+    ServiceDetail getServiceDetail(int i);
     void updateData();
     QList<ServiceDetail> *serviceDetailList;
 

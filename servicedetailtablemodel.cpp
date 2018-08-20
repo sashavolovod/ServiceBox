@@ -4,7 +4,7 @@
 ServiceDetailTableModel::ServiceDetailTableModel(QList<ServiceDetail> *list, QObject *parent /*= 0 */) : QAbstractTableModel(parent)
 {
     serviceDetailList = list;
-    header_data << "Дата начала ремонта" << "Дата оконсания ремонта" << "Дней простоя";
+    header_data << "Дата начала ремонта" << "Дата окончания ремонта" << "Дней простоя";
 }
 
 ServiceDetailTableModel::~ServiceDetailTableModel() {}
@@ -25,7 +25,9 @@ QVariant ServiceDetailTableModel::data(const QModelIndex &index, int role) const
         if (index.column() == 1 )
             return serviceDetailList->at(index.row()).endDate.toString("dd.MM.yyyy");
         if (index.column() == 2 )
-            return 1;
+        {
+            return serviceDetailList->at(index.row()).startDate.daysTo(serviceDetailList->at(index.row()).endDate);
+        }
     }
     return QVariant();
 }
@@ -71,7 +73,12 @@ void ServiceDetailTableModel::updateData()
     endResetModel();
 }
 
-int ServiceDetailTableModel::getId(int i)
+int ServiceDetailTableModel::getServiceId(int i)
 {
     return serviceDetailList->at(i).serviceId;
+}
+
+ServiceDetail ServiceDetailTableModel::getServiceDetail(int i)
+{
+    return serviceDetailList->at(i);
 }

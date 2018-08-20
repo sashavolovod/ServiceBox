@@ -104,7 +104,6 @@ void MainWindow::createUI()
     rightWidget = new QWidget();
     vLayout = new QVBoxLayout();
     hLayout = new QHBoxLayout();
-    tmpWidget = new QWidget;
 
     leFilter = new QLineEdit();
     chkOnlyNotWorking = new QCheckBox;
@@ -137,12 +136,14 @@ void MainWindow::createUI()
     //detailModel->setList();
 
     tableDetailView->setModel(detailModel);
+    tableDetailView->setColumnWidth(0,180);
+    tableDetailView->setColumnWidth(1,220);
     tableDetailView->horizontalHeader()->setStretchLastSection(true);
     tableDetailView->setSelectionBehavior(QAbstractItemView::SelectRows);
     connect(table_view->selectionModel(), SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)), this, SLOT(onSelectionChanged(const QItemSelection &, const QItemSelection &)));
     table_view->selectRow(0);
-//    connect(table_view->selectionModel(), SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)), this, SLOT(onSelectionChanged(const QItemSelection &, const QItemSelection &)));
-    tableDetailView->selectRow(0);
+    connect(tableDetailView->selectionModel(), SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)), this, SLOT(onDetailSelectionChanged(const QItemSelection &, const QItemSelection &)));
+    tableDetailView->selectRow(tableDetailView->model()->rowCount()-1);
 
     filterLayout->addWidget(chkOnlyNotWorking);
     filterLayout->addWidget(leFilter);
@@ -151,12 +152,16 @@ void MainWindow::createUI()
     leftWidget->setLayout(leftVBoxLayout);
 
     rightWidget->setLayout(vLayout);
+//    rightWidget->setContentsMargins(10,10,10,10);
+//    qDebug() << rightWidget->contentsMargins();
     vLayout->addWidget(teLog, 1);
     teMessage->setFixedHeight(75);
 
     vLayout->addLayout(hLayout);
     hLayout->addWidget(teMessage);
     hLayout->addWidget(btnReady);
+
+//    hLayout->setMargin(0);
 
     vSplitter->addWidget(tableDetailView);
     vSplitter->addWidget(rightWidget);
@@ -282,8 +287,15 @@ void MainWindow::onSelectionChanged(const QItemSelection &sel, const QItemSelect
 {
     int equpmentId = getSelectedId();
     //updateDetail(equpmentId);
+    teLog->clear();
     updateServiceDetailList(equpmentId);
-    qDebug() << serviceDetailList->count();
+    tableDetailView->selectRow(tableDetailView->model()->rowCount()-1);
+}
+
+void MainWindow::onDetailSelectionChanged(const QItemSelection &sel, const QItemSelection &desel)
+{
+    int serviceId = detailModel->getServiceId(tableDetailView->currentIndex().row());
+    updateDetail(serviceId);
 }
 
 void MainWindow::updateDetail(int id)
@@ -330,21 +342,21 @@ bool MainWindow::sendMessage(QString str)
     QString sql("insert into equipment_service_details(equipment_services_id, equipment_users, note) VALUES  (:id, :user_id, :note);");
     QSqlQuery query;
     bool result=false;
-    int i = table_view->currentIndex().row();
-    QModelIndex index = table_view->model()->index(i, 0);
-    int id = index.data().toInt();
+
+    int serviceId = detailModel->getServiceId(tableDetailView->currentIndex().row());
+
     db.open();
     if(db.isOpen())
     {
         query.prepare(sql);
-        query.bindValue(":id", id);
+        query.bindValue(":id", serviceId);
         query.bindValue(":user_id", 1);
         query.bindValue(":note", str);
         result = query.exec();
         if(result == false)
             QMessageBox::critical(this, "Ошибка сохранения", query.lastError().text());
         else
-            updateDetail(id);
+            updateDetail(serviceId);
     }
     query.clear();
     db.close();
@@ -359,16 +371,18 @@ void MainWindow::update()
 int MainWindow::getSelectedId()
 {
     int i = table_view->currentIndex().row();
-    // qDebug() << "i = " << i;
     QModelIndex index = table_view->model()->index(i, 0);
-    // qDebug() << "index = " << index;
     return index.data().toInt();
 }
 
 bool MainWindow::changeStatus()
 {
     int new_status;
-    Service s = serviceList.at(table_view->currentIndex().row());
+    int row = tableDetailView->currentIndex().row();
+    if(row<0)
+        return false;
+
+    ServiceDetail s =  detailModel->getServiceDetail(row);
     switch (s.status)
     {
         case 0:
@@ -392,12 +406,19 @@ bool MainWindow::changeStatus()
     {
         query.prepare(sql);
         query.bindValue(":status", new_status);
-        query.bindValue(":service_id", s.id);
+        query.bindValue(":service_id", s.serviceId);
         result = query.exec();
         if(result == false)
             QMessageBox::critical(this, "Ошибка сохранения", query.lastError().text());
         else
+        {
             load_data();
+            int row1 = table_view->currentIndex().row();
+            int row2 = tableDetailView ->currentIndex().row();
+            model->updateData();
+            table_view->selectRow(row1);
+            tableDetailView->selectRow(row2);
+        }
     }
 
     query.clear();

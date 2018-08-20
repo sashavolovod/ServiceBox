@@ -79,7 +79,6 @@ protected:
     QHBoxLayout *hLayout;
     QWidget *rightWidget;
     QWidget *leftWidget;
-    QWidget *tmpWidget;
 
     QTimer *timer;
 
@@ -95,7 +94,9 @@ protected slots:
     void setIcon();
     void about();   // вывод сообщения о программе
     void aboutQt(); // вывод информации о библиотеке Qt
+
     void onSelectionChanged(const QItemSelection &, const QItemSelection &);
+    void onDetailSelectionChanged(const QItemSelection &, const QItemSelection &);
     void update();
     bool changeStatus();
     void addService();
