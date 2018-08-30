@@ -2,7 +2,11 @@
 #define SERVICETABLEMODEL_H
 
 #include <QAbstractTableModel>
+#include <QColor>
+#include <QFont>
+
 #include "service.h"
+
 
 class Service;
 

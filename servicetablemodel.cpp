@@ -39,6 +39,26 @@ QVariant ServiceTableModel::data(const QModelIndex &index, int role) const
             }
         }
     }
+    if(role==Qt::TextColorRole)
+    {
+        if(index.row() >= 0)
+        {
+            if(serviceList->at(index.row()).status !=0 )
+                return QVariant(QColor(Qt::darkRed));
+        }
+    }
+
+    if(role==Qt::FontRole)
+    {
+        if(index.row() >= 0 && serviceList->at(index.row()).status !=0)
+        {
+            QFont font;
+            font.setBold(true);
+            return font;
+        }
+    }
+
+
     return QVariant();
 }
 

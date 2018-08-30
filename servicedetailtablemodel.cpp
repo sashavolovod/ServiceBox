@@ -22,12 +22,10 @@ QVariant ServiceDetailTableModel::data(const QModelIndex &index, int role) const
     {
         if (index.column() == 0 )
             return serviceDetailList->at(index.row()).startDate.toString("dd.MM.yyyy");
-        if (index.column() == 1 )
+        if (index.column() == 1 && serviceDetailList->at(index.row()).status==0)
             return serviceDetailList->at(index.row()).endDate.toString("dd.MM.yyyy");
         if (index.column() == 2 )
-        {
             return serviceDetailList->at(index.row()).startDate.daysTo(serviceDetailList->at(index.row()).endDate);
-        }
     }
     return QVariant();
 }
