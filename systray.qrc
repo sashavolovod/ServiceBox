@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/">
         <file>images/monitor.ico</file>
+        <file>images/if_package_settings_1441.ico</file>
     </qresource>
 </RCC>

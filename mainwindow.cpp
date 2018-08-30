@@ -3,6 +3,8 @@
 MainWindow::MainWindow()
 {
     serviceDetailList = new QList<ServiceDetail>();
+    getCurrentUser();
+    qDebug() << currentUser << " " << currentUserId;
     createUI();
 
 }
@@ -37,7 +39,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
 void MainWindow::setIcon()
 {
-    QIcon icon(":/images/monitor.ico");
+    QIcon icon(":/images/if_package_settings_1441.ico");
     trayIcon->setIcon(icon);
     setWindowIcon(icon);
 }
@@ -128,8 +130,6 @@ void MainWindow::createUI()
     table_view->setColumnWidth(2,150);
     table_view->horizontalHeader()->setStretchLastSection(true);
     table_view->setSelectionBehavior(QAbstractItemView::SelectRows);
-
-
 
     tableDetailView = new QTableView;
     detailModel = new ServiceDetailTableModel(serviceDetailList);
@@ -350,7 +350,7 @@ bool MainWindow::sendMessage(QString str)
     {
         query.prepare(sql);
         query.bindValue(":id", serviceId);
-        query.bindValue(":user_id", 1);
+        query.bindValue(":user_id", currentUserId);
         query.bindValue(":note", str);
         result = query.exec();
         if(result == false)
@@ -531,5 +531,39 @@ void MainWindow::applyFilter()
                 match = false;
         }
         table_view->setRowHidden( i, !match );
+    }
+}
+
+void MainWindow::getCurrentUser()
+{
+    QSettings settings;
+    QString sLogin = settings.value("login", "").toString();
+
+    QSqlDatabase db = QSqlDatabase::database();
+    QString sql("select equipment_user_id, equipment_user_name from equipment_users where login=:login;");
+    QSqlQuery query;
+
+    db.open();
+    if(db.isOpen())
+    {
+        query.prepare(sql);
+        query.bindValue(":login", sLogin);
+        query.exec();
+        if(query.next()==false)
+        {
+            QMessageBox::critical(this, "Учет ремонта оборудования",
+                                     "Имя пользователя задано неверно");
+            query.clear();
+            db.close();
+            close();
+        }
+        else
+        {
+            currentUserId = query.value(0).toInt();
+            currentUser = query.value(1).toString();
+        }
+
+        query.clear();
+        db.close();
     }
 }

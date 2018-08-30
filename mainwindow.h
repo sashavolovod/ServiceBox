@@ -82,6 +82,12 @@ protected:
 
     QTimer *timer;
 
+    QString currentUser;
+    int currentUserId;
+
+
+    void getCurrentUser();
+
     void load_data();
 
     void saveSettings();
