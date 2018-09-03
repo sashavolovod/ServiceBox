@@ -4,9 +4,10 @@
 #include <QAbstractTableModel>
 #include <QColor>
 #include <QFont>
+#include <QDebug>
+#include <QtAlgorithms>
 
 #include "service.h"
-
 
 class Service;
 
@@ -16,8 +17,6 @@ class ServiceTableModel : public QAbstractTableModel
 public:
     explicit ServiceTableModel(QList<Service> *list, QObject *parent = 0);
     ~ServiceTableModel();
-
-
 
     QVariant data(const QModelIndex &index, int role) const;
     bool setData(const QModelIndex &index, const QVariant &value, int role);
@@ -32,10 +31,19 @@ public:
 
     int getId(int i);
 
+    void sort(int column, Qt::SortOrder order = Qt::AscendingOrder);
+
 protected:
     QStringList header_data; // список заголовков столбцов
     QList<Service> *serviceList;    // список, в котором хранятся все данные
 
+
+    static bool compareNumAsc(const Service &s1, const Service &s2);
+    static bool compareNumDesc(const Service &s1, const Service &s2);
+    static bool compareNameAsc(const Service &s1, const Service &s2);
+    static bool compareNameDesc(const Service &s1, const Service &s2);
+    static bool compareStateAsc(const Service &s1, const Service &s2);
+    static bool compareStateDesc(const Service &s1, const Service &s2);
 };
 
 #endif // SERVICETABLEMODEL_H

@@ -108,3 +108,61 @@ int ServiceTableModel::getId(int i)
     return serviceList->at(i).id;
 }
 
+bool ServiceTableModel::compareNameAsc(const Service &s1, const Service &s2)
+{
+    return (s1.name<s2.name);
+}
+
+bool ServiceTableModel::compareNameDesc(const Service &s1, const Service &s2)
+{
+    return (s1.name>s2.name);
+}
+
+bool ServiceTableModel::compareStateAsc(const Service &s1, const Service &s2)
+{
+    return (s1.status<s2.status);
+}
+
+bool ServiceTableModel::compareStateDesc(const Service &s1, const Service &s2)
+{
+    return (s1.status>s2.status);
+}
+
+bool ServiceTableModel::compareNumAsc(const Service &s1, const Service &s2)
+{
+    return (s1.code<s2.code);
+}
+
+bool ServiceTableModel::compareNumDesc(const Service &s1, const Service &s2)
+{
+    return (s1.code>s2.code);
+}
+
+void ServiceTableModel::sort(int column, Qt::SortOrder order)
+{
+    qDebug() << "column" << column << " order " << order;
+
+    switch(column)
+    {
+    case 1:
+        if(order==Qt::AscendingOrder)
+            qSort(serviceList->begin(), serviceList->end(), compareNumAsc);
+        else
+            qSort(serviceList->begin(), serviceList->end(), compareNumDesc);
+        break;
+    case 2:
+        if(order==Qt::AscendingOrder)
+            qSort(serviceList->begin(), serviceList->end(), compareNameAsc);
+        else
+            qSort(serviceList->begin(), serviceList->end(), compareNameDesc);
+        break;
+    case 3:
+        if(order==Qt::AscendingOrder)
+            qSort(serviceList->begin(), serviceList->end(), compareStateAsc);
+        else
+            qSort(serviceList->begin(), serviceList->end(), compareStateDesc);
+        break;
+
+    };
+    updateData();
+}

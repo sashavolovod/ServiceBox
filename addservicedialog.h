@@ -17,7 +17,7 @@ class AddServiceDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit AddServiceDialog(QList<ComboBoxItem> *groups, QList<ComboBoxItem> *equpments, QWidget *parent = 0);
+    explicit AddServiceDialog(QList<ComboBoxItem> *groups, QList<ComboBoxItem> *equpments, int equpmentId, QWidget *parent = 0);
     ~AddServiceDialog();
 
 private:

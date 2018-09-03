@@ -1,18 +1,46 @@
 #include "addservicedialog.h"
 #include "ui_addservicedialog.h"
 
-AddServiceDialog::AddServiceDialog(QList<ComboBoxItem> *groups, QList<ComboBoxItem> *equpments, QWidget *parent) :
+AddServiceDialog::AddServiceDialog(QList<ComboBoxItem> *groups, QList<ComboBoxItem> *equpments, int equpmentId, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::AddServiceDialog)
 {
+    int groupIndex, groupId, i;
     ui->setupUi(this);
+
     ui->cbGroup->addItem("", -1);
     foreach (ComboBoxItem i, *groups)
     {
         ui->cbGroup->addItem(i.name, i.id);
     }
+
     connect(ui->cbGroup, SIGNAL(currentIndexChanged(int)), this, SLOT(changeGroup(int)));
     this->equpments = equpments;
+
+    foreach (ComboBoxItem it, *equpments) {
+        if(it.id == equpmentId)
+        {
+            groupId = it.parentId;
+            break;
+        }
+    }
+
+    foreach (ComboBoxItem it, *groups) {
+        if(it.id == groupId)
+        {
+            ui->cbGroup->setCurrentText(it.name);
+            break;
+        }
+    }
+
+    for(i=0; i<ui->cbEq->count(); i++) {
+        if(ui->cbEq->itemData(i).toInt()==equpmentId)
+            break;
+    }
+
+    ui->cbEq->setCurrentIndex(i);
+
+
 }
 
 AddServiceDialog::~AddServiceDialog()
@@ -31,7 +59,6 @@ void AddServiceDialog::changeGroup(int index)
             ui->cbEq->addItem(i.name, i.id);
     }
 }
-
 
 void AddServiceDialog::accept()
 {

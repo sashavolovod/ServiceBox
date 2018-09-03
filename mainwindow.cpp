@@ -6,7 +6,6 @@ MainWindow::MainWindow()
     getCurrentUser();
     qDebug() << currentUser << " " << currentUserId;
     createUI();
-
 }
 
 MainWindow::~MainWindow()
@@ -124,12 +123,17 @@ void MainWindow::createUI()
     getComboBoxItems();
 
     model = new ServiceTableModel(&serviceList);
+
     table_view->setModel(model);
+
     table_view->setColumnHidden(0,true);
     table_view->setColumnWidth(1,100);
     table_view->setColumnWidth(2,150);
     table_view->horizontalHeader()->setStretchLastSection(true);
     table_view->setSelectionBehavior(QAbstractItemView::SelectRows);
+
+    table_view->setSortingEnabled(true);
+    table_view->sortByColumn(2);
 
     tableDetailView = new QTableView;
     detailModel = new ServiceDetailTableModel(serviceDetailList);
@@ -420,7 +424,6 @@ bool MainWindow::changeStatus()
             tableDetailView->selectRow(row2);
         }
     }
-
     query.clear();
     db.close();
     return result;
@@ -462,7 +465,7 @@ void MainWindow::getComboBoxItems()
 
 void MainWindow::addService()
 {
-    AddServiceDialog dialog(&groups, &equpments);
+    AddServiceDialog dialog(&groups, &equpments, getSelectedId());
     dialog.setModal(true);
     dialog.exec();
     load_data();
@@ -517,8 +520,8 @@ void MainWindow::applyFilter()
         bool match = false;
         for( int j = 0; j < table_view->model()->columnCount(); ++j )
         {
-            QString itemText = table_view->model()->data(table_view->model()->index(i,j)).toString();
-            if(itemText.contains(filter))
+            QString itemText = table_view->model()->data(table_view->model()->index(i,j)).toString().toUpper();
+            if(itemText.contains(filter.toUpper()))
             {
                 match = true;
                 break;

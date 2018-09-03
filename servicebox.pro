@@ -44,5 +44,5 @@ FORMS += \
 
 CONFIG += c++11
 
-win32:RC_ICONS += if_package_settings_1441.ico
+win32:RC_ICONS += images/if_package_settings_1441.ico
 
