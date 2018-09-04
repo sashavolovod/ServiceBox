@@ -38,7 +38,9 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
 void MainWindow::setIcon()
 {
-    QIcon icon(":/images/if_package_settings_1441.ico");
+    //QIcon icon(":/images/if_package_settings_1441.ico");
+    QIcon icon(":/images/tool.png");
+    qDebug() << icon;
     trayIcon->setIcon(icon);
     setWindowIcon(icon);
 }
