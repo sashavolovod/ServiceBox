@@ -4,7 +4,6 @@ MainWindow::MainWindow()
 {
     serviceDetailList = new QList<ServiceDetail>();
     getCurrentUser();
-    qDebug() << currentUser << " " << currentUserId;
     createUI();
 }
 
@@ -38,9 +37,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
 void MainWindow::setIcon()
 {
-    //QIcon icon(":/images/if_package_settings_1441.ico");
     QIcon icon(":/images/tool.png");
-    qDebug() << icon;
     trayIcon->setIcon(icon);
     setWindowIcon(icon);
 }
@@ -53,7 +50,10 @@ void MainWindow::createActions()
     actAboutQt = new QAction("О библиотеке Qt...", this);
     connect(actAboutQt, SIGNAL(triggered()), this, SLOT(aboutQt()));
 
-    actAdd = new QAction("Добавить...", this);
+    QIcon icon(":/images/if_Add_27831.png");
+
+    actAdd = new QAction(icon, "Добавить...", this);
+    //actAdd->setIcon(icon);
     connect(actAdd, SIGNAL(triggered()), this, SLOT(addService()));
 
     // действия контестное меню
@@ -78,6 +78,7 @@ void MainWindow::createTrayIcon()
     trayIconMenu->addAction(restoreAction);
     trayIconMenu->addSeparator();
     trayIconMenu->addAction(quitAction);
+
     trayIcon = new QSystemTrayIcon(this);
     trayIcon->setContextMenu(trayIconMenu);
     setIcon();
@@ -115,8 +116,21 @@ void MainWindow::createUI()
     // создание редактора для вывода журнала работы приложения
     teLog = new QTextEdit(this);
     teLog->setReadOnly(true);
+
     teMessage = new MessageEdit(this);
-    btnReady = new QPushButton("Выполнено", this);
+    teMessage->setEnabled(false);
+
+    if(currentUserId == 4)
+    {
+        btnReady = new QPushButton("Подтверждаю", this);
+    }
+    else
+    {
+        btnReady = new QPushButton("Выполнено", this);
+    }
+
+    btnReady->setEnabled(false);
+
     connect(btnReady, SIGNAL (pressed()), this, SLOT (changeStatus()));
 
     table_view = new QTableView;
@@ -133,13 +147,10 @@ void MainWindow::createUI()
     table_view->setColumnWidth(2,150);
     table_view->horizontalHeader()->setStretchLastSection(true);
     table_view->setSelectionBehavior(QAbstractItemView::SelectRows);
-
     table_view->setSortingEnabled(true);
-    table_view->sortByColumn(2);
 
     tableDetailView = new QTableView;
     detailModel = new ServiceDetailTableModel(serviceDetailList);
-    //detailModel->setList();
 
     tableDetailView->setModel(detailModel);
     tableDetailView->setColumnWidth(0,180);
@@ -165,6 +176,7 @@ void MainWindow::createUI()
 
     vLayout->addLayout(hLayout);
     hLayout->addWidget(teMessage);
+
     hLayout->addWidget(btnReady);
 
 //    hLayout->setMargin(0);
@@ -289,7 +301,7 @@ void saveSettings()
 
 }
 
-void MainWindow::onSelectionChanged(const QItemSelection &sel, const QItemSelection &desel)
+void MainWindow::onSelectionChanged(const QItemSelection &, const QItemSelection &)
 {
     int equpmentId = getSelectedId();
     //updateDetail(equpmentId);
@@ -298,10 +310,22 @@ void MainWindow::onSelectionChanged(const QItemSelection &sel, const QItemSelect
     tableDetailView->selectRow(tableDetailView->model()->rowCount()-1);
 }
 
-void MainWindow::onDetailSelectionChanged(const QItemSelection &sel, const QItemSelection &desel)
+void MainWindow::onDetailSelectionChanged(const QItemSelection &, const QItemSelection &)
 {
-    int serviceId = detailModel->getServiceId(tableDetailView->currentIndex().row());
-    updateDetail(serviceId);
+    ServiceDetail d = detailModel->getServiceDetail(tableDetailView->currentIndex().row());
+    qDebug() << " status " << d.status << " userId" << currentUserId;
+
+    if((d.status==1 && currentUserId==3) || (d.status==2 && currentUserId==4))
+    {
+        btnReady->setEnabled(true);
+    }
+    else
+    {
+        btnReady->setEnabled(false);
+    }
+
+    teMessage->setEnabled(d.status!=0);
+    updateDetail(d.serviceId);
 }
 
 void MainWindow::updateDetail(int id)
@@ -462,12 +486,13 @@ void MainWindow::getComboBoxItems()
             groups << item;
         }
         db.close();
+
     }
 }
 
 void MainWindow::addService()
 {
-    AddServiceDialog dialog(&groups, &equpments, getSelectedId());
+    AddServiceDialog dialog(&groups, &equpments, getSelectedId(), currentUserId);
     dialog.setModal(true);
     dialog.exec();
     load_data();

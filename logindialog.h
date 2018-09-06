@@ -3,6 +3,7 @@
 
 #include <QDialog>
 #include <QSettings>
+#include <QHostInfo>
 
 #include "aesqt.h"
 

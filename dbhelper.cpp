@@ -8,7 +8,7 @@ DbHelper::DbHelper()
     sDatabase = settings.value("database", "texac_db").toString();
     sLogin = settings.value("login", "").toString();
     sPassword = settings.value("password", "").toString();
-    sPassword = decodeText(sPassword, PASS_PHRASE);
+    sPassword = decodeText(sPassword, PASS_PHRASE + QHostInfo::localHostName());
 }
 
 void DbHelper::saveSettings()
@@ -18,7 +18,7 @@ void DbHelper::saveSettings()
     settings.setValue("port", iPort);
     settings.setValue("database", sDatabase);
     settings.setValue("login", sLogin);
-    settings.setValue("password",  encodeText(sPassword,PASS_PHRASE));
+    settings.setValue("password",  encodeText(sPassword,PASS_PHRASE + QHostInfo::localHostName()));
     settings.sync();
 }
 
@@ -28,8 +28,25 @@ QSqlDatabase DbHelper::getDb()
     bool f=false;
     d.setModal(true);
 
+
     while(1)
     {
+        /*
+        if(firtsConnect==true)
+        {
+            firtsConnect=false;
+            if(d.exec()==QDialog::Rejected)
+                break;
+            else
+            {
+                sHost = d.sHost;
+                iPort = d.iPort;
+                sDatabase = d.sDatabase;
+                sLogin = d.sLogin;
+                sPassword = d.sPassword;
+            }
+        }
+*/
         if(connect()==true)
         {
             saveSettings();

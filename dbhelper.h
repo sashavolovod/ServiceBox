@@ -15,6 +15,7 @@ class DbHelper
 public:
     DbHelper();
     QSqlDatabase getDb();
+    static bool firtsConnect;
 private:
     QSqlDatabase db;
     QString sHost;

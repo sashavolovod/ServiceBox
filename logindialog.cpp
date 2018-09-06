@@ -22,7 +22,7 @@ void LoginDialog::setUi()
     ui->leDb->setText(settings.value("database", "texac_db").toString());
     ui->leLogin->setText(settings.value("login", "").toString());
     QString sPass = settings.value("password", "").toString();
-    sPass = decodeText(sPass, PASS_PHRASE);
+    sPass = decodeText(sPass, PASS_PHRASE + QHostInfo::localHostName());
     ui->lePassword->setText(sPass);
 }
 

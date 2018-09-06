@@ -1,13 +1,13 @@
 #include "addservicedialog.h"
 #include "ui_addservicedialog.h"
 
-AddServiceDialog::AddServiceDialog(QList<ComboBoxItem> *groups, QList<ComboBoxItem> *equpments, int equpmentId, QWidget *parent) :
+AddServiceDialog::AddServiceDialog(QList<ComboBoxItem> *groups, QList<ComboBoxItem> *equpments, int equpmentId, int currentUserId, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::AddServiceDialog)
 {
-    int groupIndex, groupId, i;
+    int groupId, i;
     ui->setupUi(this);
-
+    this->currentUserId = currentUserId;
     ui->cbGroup->addItem("", -1);
     foreach (ComboBoxItem i, *groups)
     {
@@ -39,8 +39,6 @@ AddServiceDialog::AddServiceDialog(QList<ComboBoxItem> *groups, QList<ComboBoxIt
     }
 
     ui->cbEq->setCurrentIndex(i);
-
-
 }
 
 AddServiceDialog::~AddServiceDialog()
@@ -48,7 +46,7 @@ AddServiceDialog::~AddServiceDialog()
     delete ui;
 }
 
-void AddServiceDialog::changeGroup(int index)
+void AddServiceDialog::changeGroup(int )
 {
     int id = ui->cbGroup->currentData().toInt();
     ui->cbEq->clear();
@@ -94,7 +92,7 @@ void AddServiceDialog::accept()
             return;
         }
         query.prepare("insert into equipment_service_details(equipment_services_id, equipment_users, note) VALUES ((select currval('equipment_services_equipment_service_id_seq')), :user_id, :note);");
-        query.bindValue(":user_id", 1);
+        query.bindValue(":user_id", currentUserId);
         query.bindValue(":note", note);
         result = query.exec();
         if(result == false)

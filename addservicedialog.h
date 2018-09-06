@@ -17,12 +17,14 @@ class AddServiceDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit AddServiceDialog(QList<ComboBoxItem> *groups, QList<ComboBoxItem> *equpments, int equpmentId, QWidget *parent = 0);
+    explicit AddServiceDialog(QList<ComboBoxItem> *groups, QList<ComboBoxItem> *equpments, int equpmentId, int currentUserId, QWidget *parent = 0);
     ~AddServiceDialog();
 
 private:
     Ui::AddServiceDialog *ui;
     QList<ComboBoxItem> *equpments;
+    int currentUserId;
+
 protected slots:
     void changeGroup(int index);
     void accept();

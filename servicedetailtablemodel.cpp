@@ -30,16 +30,16 @@ QVariant ServiceDetailTableModel::data(const QModelIndex &index, int role) const
     return QVariant();
 }
 
-bool ServiceDetailTableModel::setData(const QModelIndex &index, const QVariant &value, int role)
+bool ServiceDetailTableModel::setData(const QModelIndex &, const QVariant &, int)
 {
     return false;
 }
-int ServiceDetailTableModel::rowCount(const QModelIndex &parent) const
+int ServiceDetailTableModel::rowCount(const QModelIndex &) const
 {
     return serviceDetailList->size(); // размер списка - это количество строк
 }
 
-int ServiceDetailTableModel::columnCount(const QModelIndex &parent)    const
+int ServiceDetailTableModel::columnCount(const QModelIndex &)    const
 {
     return header_data.count();
 }

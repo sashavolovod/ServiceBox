@@ -62,16 +62,16 @@ QVariant ServiceTableModel::data(const QModelIndex &index, int role) const
     return QVariant();
 }
 
-bool ServiceTableModel::setData(const QModelIndex &index, const QVariant &value, int role)
+bool ServiceTableModel::setData(const QModelIndex &, const QVariant &, int)
 {
     return false;
 }
-int ServiceTableModel::rowCount(const QModelIndex &parent) const
+int ServiceTableModel::rowCount(const QModelIndex &) const
 {
     return serviceList->size(); // размер списка - это количество строк
 }
 
-int ServiceTableModel::columnCount(const QModelIndex &parent)    const
+int ServiceTableModel::columnCount(const QModelIndex &)    const
 {
     return header_data.count();
 }
@@ -140,8 +140,6 @@ bool ServiceTableModel::compareNumDesc(const Service &s1, const Service &s2)
 
 void ServiceTableModel::sort(int column, Qt::SortOrder order)
 {
-    qDebug() << "column" << column << " order " << order;
-
     switch(column)
     {
     case 1:

@@ -12,6 +12,8 @@
 #include "dbhelper.h"
 #include "mainwindow.h"
 
+   bool DbHelper::firtsConnect = true;
+
 int main(int argc, char *argv[])
 {
     QCoreApplication::setOrganizationName("gefest");
@@ -38,11 +40,20 @@ int main(int argc, char *argv[])
     }
     QApplication::setQuitOnLastWindowClosed(false);
 
+
     DbHelper dbHelper;
-    dbHelper.getDb().close();
 
-    MainWindow window;
-    window.show();
+    if(dbHelper.getDb().isOpen()==true)
+    {
+        MainWindow window;
+        window.show();
+        return app.exec();
+    }
+    else
+    {
+        QMessageBox::critical(0, QObject::tr("Ошибка"),
+                              QObject::tr("Не могу подключится к серверу базы данных"));
+        return -1;
+    }
 
-    return app.exec();
 }

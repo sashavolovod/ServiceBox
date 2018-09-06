@@ -1,6 +1,6 @@
-QT       += core gui sql widgets
+QT       += core gui sql widgets network
 
-TARGET = servicebox
+TARGET = servicebox.app
 TEMPLATE += app
 
 SOURCES += main.cpp\
