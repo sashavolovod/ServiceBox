@@ -58,7 +58,6 @@ QVariant ServiceTableModel::data(const QModelIndex &index, int role) const
         }
     }
 
-
     return QVariant();
 }
 

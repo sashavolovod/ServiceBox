@@ -120,7 +120,7 @@ void MainWindow::createUI()
     teMessage = new MessageEdit(this);
     teMessage->setEnabled(false);
 
-    if(currentUserId == 4)
+    if(currentUserId == 4 || currentUserId == 5)
     {
         btnReady = new QPushButton("Подтверждаю", this);
     }
@@ -148,6 +148,11 @@ void MainWindow::createUI()
     table_view->horizontalHeader()->setStretchLastSection(true);
     table_view->setSelectionBehavior(QAbstractItemView::SelectRows);
     table_view->setSortingEnabled(true);
+
+    connect(table_view->horizontalHeader(), &QHeaderView::sectionClicked, [this](int )
+    {
+        applyFilter();
+    });
 
     tableDetailView = new QTableView;
     detailModel = new ServiceDetailTableModel(serviceDetailList);
@@ -313,9 +318,8 @@ void MainWindow::onSelectionChanged(const QItemSelection &, const QItemSelection
 void MainWindow::onDetailSelectionChanged(const QItemSelection &, const QItemSelection &)
 {
     ServiceDetail d = detailModel->getServiceDetail(tableDetailView->currentIndex().row());
-    qDebug() << " status " << d.status << " userId" << currentUserId;
 
-    if((d.status==1 && currentUserId==3) || (d.status==2 && currentUserId==4))
+    if((d.status==1 && currentUserId==3) || (d.status==2 && (currentUserId==4 || currentUserId==5)))
     {
         btnReady->setEnabled(true);
     }
