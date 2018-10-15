@@ -424,7 +424,7 @@ void MainWindow::checkNewMessages()
                 message = query.value("note").toString();
                 userName = query.value("equipment_user_name").toString();
                 trayIcon->showMessage(userName, message,QSystemTrayIcon::Information,30000);
-                QSound::play(":/quite-impressed.mp3");
+                QSound::play(":/quiteimpressed.wav");
             }
         }
     }
