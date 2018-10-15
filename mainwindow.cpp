@@ -68,6 +68,8 @@ void MainWindow::createActions()
 
     quitAction = new QAction("Выход", this);
     connect(quitAction, SIGNAL(triggered()), qApp, SLOT(quit()));
+
+
 }
 
 void MainWindow::createTrayIcon()
@@ -93,12 +95,6 @@ void MainWindow::createUI()
     createTrayIcon();
     trayIcon->show();
 
-    // создание панели инструментов
-/*
-    toolbar = new QToolBar();
-    addToolBar(toolbar);
-*/
-
     leftVBoxLayout = new QVBoxLayout();
     filterLayout = new QHBoxLayout();
 
@@ -110,8 +106,12 @@ void MainWindow::createUI()
     hLayout = new QHBoxLayout();
 
     leFilter = new QLineEdit();
-    chkOnlyNotWorking = new QCheckBox;
-    chkOnlyNotWorking->setText("Только неисправные");
+    cbStatus = new QComboBox();
+    cbStatus->addItem("все");
+    cbStatus->addItem("исправные");
+    cbStatus->addItem("неисправные");
+    cbStatus->addItem("проверяются");
+    cbStatus->setCurrentIndex(0);
 
     // создание редактора для вывода журнала работы приложения
     teLog = new QTextEdit(this);
@@ -167,7 +167,8 @@ void MainWindow::createUI()
     connect(tableDetailView->selectionModel(), SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)), this, SLOT(onDetailSelectionChanged(const QItemSelection &, const QItemSelection &)));
     tableDetailView->selectRow(tableDetailView->model()->rowCount()-1);
 
-    filterLayout->addWidget(chkOnlyNotWorking);
+    filterLayout->addWidget(new QLabel("Состояние: "));
+    filterLayout->addWidget(cbStatus);
     filterLayout->addWidget(leFilter);
     leftVBoxLayout->addLayout(filterLayout);
     leftVBoxLayout->addWidget(table_view);
@@ -231,14 +232,16 @@ void MainWindow::createUI()
 
     setWindowTitle("Учет ремонта оборудования");
     setWindowIcon(QIcon(":/images/antivirus.ico"));
-/*
+
     timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(update()));
     timer->start(1000);
-*/
-    //connect(leFilter, SIGNAL(textEdited(const QString &text)), this, SLOT(applyFilter()));
+
     connect(leFilter, &QLineEdit::textEdited, this, &MainWindow::applyFilter);
-    connect(chkOnlyNotWorking, &QCheckBox::stateChanged, this, &MainWindow::applyFilter);
+    connect(cbStatus, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged), [this](int)
+    {
+        applyFilter();
+    });
 
 }
 
@@ -257,27 +260,17 @@ void MainWindow::about()
 void MainWindow::load_data()
 {
     QSqlDatabase db = QSqlDatabase::database();
-/*
-    QString sql("SELECT "
-                  "equipment_service_id as id, "
-                  "equipment_services_date as date, "
-                  "equipment_name as name, "
-                  "status "
-                "FROM "
-                  "equipments inner join equipment_services on equipment_services.equipment_id = equipments.equipment_id "
-                "ORDER BY date; "
-                );
-*/
-
     QSqlQuery query;
 
     QString sql("select "
                 "  e.equipment_id, "
                 "  e.equipment_code, "
                 "  t.equipment_type_name || ' ' || equipment_name as name, "
-                "  max(s.status) as status "
+                "  max(s.status) as status, "
+                "  max(date) as last_date "
                 "from equipments e inner join equipment_types t on e.equipment_type_id=t.equipment_types_id "
                 "  full outer join equipment_services s on s.equipment_id = e.equipment_id "
+                "  full outer join equipment_service_details d on s.equipment_service_id=d.equipment_services_id "
                 "group by "
                 "  e.equipment_id, "
                 "  e.equipment_code, "
@@ -296,6 +289,8 @@ void MainWindow::load_data()
             s.name = query.value(2).toString();
             s.status = query.value(3).toInt();
             serviceList << s;
+            if(query.value(4).toDateTime()>lastMessageDate)
+                lastMessageDate = query.value(4).toDateTime();
         }
         db.close();
     }
@@ -399,7 +394,40 @@ bool MainWindow::sendMessage(QString str)
 
 void MainWindow::update()
 {
-    updateDetail(getSelectedId());
+    int row = tableDetailView->currentIndex().row();
+    if(row==-1)
+        return;
+
+    int serviceId = detailModel->getServiceId(row);
+    updateDetail(serviceId);
+    checkNewMessages();
+}
+
+void MainWindow::checkNewMessages()
+{
+    QSqlDatabase db = QSqlDatabase::database();
+    QString sql("select date, note, equipment_user_name from equipment_service_details inner join equipment_users on equipment_users=equipment_user_id where date>:date order by date;");
+    QSqlQuery query;
+    QString message;
+    QString userName;
+
+    db.open();
+    if(db.isOpen())
+    {
+        query.prepare(sql);
+        query.bindValue(":date", lastMessageDate);
+        if(query.exec())
+        {
+            while (query.next())
+            {
+                lastMessageDate = query.value("date").toDateTime();
+                message = query.value("note").toString();
+                userName = query.value("equipment_user_name").toString();
+                trayIcon->showMessage(userName, message,QSystemTrayIcon::Information,30000);
+                QSound::play(":/quite-impressed.mp3");
+            }
+        }
+    }
 }
 
 int MainWindow::getSelectedId()
@@ -545,6 +573,7 @@ void MainWindow::updateServiceDetailList(int equipmentId)
 
 void MainWindow::applyFilter()
 {
+
     QString filter = leFilter->text();
     for( int i = 0; i < table_view->model()->rowCount(); ++i )
     {
@@ -559,12 +588,26 @@ void MainWindow::applyFilter()
             }
         }
 
-        if(chkOnlyNotWorking->isChecked())
-        {
-            if(table_view->model()->data(table_view->model()->index(i,3)).toString()=="исправно")
+        int sel = cbStatus->currentIndex();
+        switch(sel) {
+        case 0:
+            break;
+        case 1:
+            if(table_view->model()->data(table_view->model()->index(i,3)).toString()!="исправно")
                 match = false;
+            break;
+        case 2:
+            if(table_view->model()->data(table_view->model()->index(i,3)).toString()!="неисправно")
+                match = false;
+            break;
+        case 3:
+            if(table_view->model()->data(table_view->model()->index(i,3)).toString()!="проверяется")
+                match = false;
+            break;
         }
+
         table_view->setRowHidden( i, !match );
+
     }
 }
 

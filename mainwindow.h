@@ -10,11 +10,13 @@
 #include <QHBoxLayout>
 #include <QPushButton>
 #include <QLineEdit>
-#include <QCheckBox>
+#include <QLabel>
+#include <QComboBox>
 #include <QSettings>
 #include <QTableWidgetItem>
 #include <QMenuBar>
 #include <QHeaderView>
+#include <QSound>
 
 #include "servicetablemodel.h"
 #include "servicedetailtablemodel.h"
@@ -37,6 +39,7 @@ public:
     bool sendMessage(QString str);
 
 protected:
+    QDateTime lastMessageDate;
     void closeEvent(QCloseEvent *event) Q_DECL_OVERRIDE;
     QTextEdit *teLog;    // окно редактирования
     MessageEdit *teMessage;// окно написания сообщения
@@ -70,7 +73,8 @@ protected:
 
     QVBoxLayout *leftVBoxLayout;
     QHBoxLayout *filterLayout;
-    QCheckBox *chkOnlyNotWorking;
+    //QCheckBox *chkOnlyNotWorking;
+    QComboBox *cbStatus;
     QLineEdit *leFilter;
 
     QSplitter *hSplitter;
@@ -95,6 +99,7 @@ protected:
     void updateServiceDetailList(int equipmentId);
     int  getSelectedId();
     void getComboBoxItems();
+    void checkNewMessages();
 
 protected slots:
     void setIcon();

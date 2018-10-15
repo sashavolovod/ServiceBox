@@ -1,4 +1,4 @@
-QT       += core gui sql widgets network
+QT       += core gui sql widgets network multimedia
 
 TARGET = servicebox.app
 TEMPLATE += app
