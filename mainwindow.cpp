@@ -290,8 +290,11 @@ void MainWindow::load_data()
             s.status = query.value(3).toInt();
             serviceList << s;
             if(query.value(4).toDateTime()>lastMessageDate)
-                lastMessageDate = query.value(4).toDateTime();
+            {
+                lastMessageDate = query.value(4).toDateTime().addMSecs(1);
+            }
         }
+        qDebug() << "start date " << lastMessageDate;
         db.close();
     }
 }
@@ -352,6 +355,10 @@ void MainWindow::updateDetail(int id)
         teLog->clear();
         while (query.next())
         {
+            QDateTime t = query.value("date").toDateTime().addMSecs(1);
+            if(lastMessageDate < t)
+                    lastMessageDate = t;
+
             QString str = QString("%1 [%2]: %3")
                     .arg(query.value(1).toString())
                     .arg(query.value(3).toDateTime().toString("dd.MM.yyyy hh:mm:ss"))
@@ -395,11 +402,11 @@ bool MainWindow::sendMessage(QString str)
 void MainWindow::update()
 {
     int row = tableDetailView->currentIndex().row();
-    if(row==-1)
-        return;
-
-    int serviceId = detailModel->getServiceId(row);
-    updateDetail(serviceId);
+    if(row>=0)
+    {
+        int serviceId = detailModel->getServiceId(row);
+        updateDetail(serviceId);
+    }
     checkNewMessages();
 }
 
@@ -420,11 +427,12 @@ void MainWindow::checkNewMessages()
         {
             while (query.next())
             {
-                lastMessageDate = query.value("date").toDateTime();
+                lastMessageDate = query.value("date").toDateTime().addMSecs(1);
+                qDebug() << lastMessageDate;
                 message = query.value("note").toString();
                 userName = query.value("equipment_user_name").toString();
                 trayIcon->showMessage(userName, message,QSystemTrayIcon::Information,30000);
-                QSound::play(":/quiteimpressed.wav");
+                QSound::play(":/sounds/quiteimpressed.wav");
             }
         }
     }
