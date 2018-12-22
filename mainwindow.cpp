@@ -118,13 +118,14 @@ void MainWindow::createUI()
     teMessage = new MessageEdit(this);
     teMessage->setEnabled(false);
 
+    btnReady = new QPushButton("Подтверждаю", this);
     if((rules & 1)==1)
     {
         btnReady = new QPushButton("Подтверждаю", this);
     }
     if((rules & 2)==2)
     {
-        btnReady = new QPushButton("Выполнено", this);
+        btnReady->setText("Выполнено");
     }
 
     btnReady->setEnabled(false);
