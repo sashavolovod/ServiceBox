@@ -87,7 +87,10 @@ bool DbHelper::connect()
     db.setPassword(sPassword);
 
     if(db.open())
+    {
+        qDebug() << "connected";
         return true;
+    }
     else
         return false;
 }

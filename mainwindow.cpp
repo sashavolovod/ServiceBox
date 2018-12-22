@@ -68,8 +68,6 @@ void MainWindow::createActions()
 
     quitAction = new QAction("Выход", this);
     connect(quitAction, SIGNAL(triggered()), qApp, SLOT(quit()));
-
-
 }
 
 void MainWindow::createTrayIcon()
@@ -120,11 +118,11 @@ void MainWindow::createUI()
     teMessage = new MessageEdit(this);
     teMessage->setEnabled(false);
 
-    if(currentUserId == 4 || currentUserId == 5)
+    if((rules & 1)==1)
     {
         btnReady = new QPushButton("Подтверждаю", this);
     }
-    else
+    if((rules & 2)==2)
     {
         btnReady = new QPushButton("Выполнено", this);
     }
@@ -132,14 +130,12 @@ void MainWindow::createUI()
     btnReady->setEnabled(false);
 
     connect(btnReady, SIGNAL (pressed()), this, SLOT (changeStatus()));
-
     table_view = new QTableView;
 
     load_data();
     getComboBoxItems();
 
     model = new ServiceTableModel(&serviceList);
-
     table_view->setModel(model);
 
     table_view->setColumnHidden(0,true);
@@ -230,7 +226,6 @@ void MainWindow::createUI()
     vSplitter->restoreState(settings.value("vSplitter","").toByteArray());
     hSplitter->restoreState(settings.value("hSplitter","").toByteArray());
 
-    setWindowTitle("Учет ремонта оборудования");
     setWindowIcon(QIcon(":/images/antivirus.ico"));
 
     timer = new QTimer(this);
@@ -261,7 +256,6 @@ void MainWindow::load_data()
 {
     QSqlDatabase db = QSqlDatabase::database();
     QSqlQuery query;
-
     QString sql("select "
                 "  e.equipment_id, "
                 "  e.equipment_code, "
@@ -317,7 +311,9 @@ void MainWindow::onDetailSelectionChanged(const QItemSelection &, const QItemSel
 {
     ServiceDetail d = detailModel->getServiceDetail(tableDetailView->currentIndex().row());
 
-    if((d.status==1 && currentUserId==3) || (d.status==2 && (currentUserId==4 || currentUserId==5)))
+    if( (d.status==1 && (rules & 2) == 2) ||
+        (d.status==2 && (rules & 1) == 1)
+      )
     {
         btnReady->setEnabled(true);
     }
@@ -402,18 +398,20 @@ bool MainWindow::sendMessage(QString str)
 void MainWindow::update()
 {
     int row = tableDetailView->currentIndex().row();
+
     if(row>=0)
     {
         int serviceId = detailModel->getServiceId(row);
         updateDetail(serviceId);
     }
-    checkNewMessages();
 }
 
 void MainWindow::checkNewMessages()
 {
     QSqlDatabase db = QSqlDatabase::database();
-    QString sql("select date, note, equipment_user_name from equipment_service_details inner join equipment_users on equipment_users=equipment_user_id where date>:date order by date;");
+    QString sql("select date, note, equipment_user_name, status "
+                "from equipment_services as s inner join equipment_service_details d on s.equipment_service_id=d.equipment_services_id "
+                       "inner join equipment_users u on u.equipment_user_id=d.equipment_users where date>:date order by date;");
     QSqlQuery query;
     QString message;
     QString userName;
@@ -470,7 +468,6 @@ bool MainWindow::changeStatus()
     QString sql("update equipment_services set status = :status where equipment_service_id = :service_id;");
     QSqlQuery query;
     bool result=false;
-
     db.open();
     if(db.isOpen())
     {
@@ -482,6 +479,10 @@ bool MainWindow::changeStatus()
             QMessageBox::critical(this, "Ошибка сохранения", query.lastError().text());
         else
         {
+            if(new_status==2)
+                sendMessage("Ремонт окончен.");
+            if(new_status==0)
+                sendMessage("Оборудование исправно.");
             load_data();
             int row1 = table_view->currentIndex().row();
             int row2 = tableDetailView ->currentIndex().row();
@@ -500,7 +501,6 @@ void MainWindow::getComboBoxItems()
     QSqlDatabase db = QSqlDatabase::database();
     QString sql("select equipment_id as id, equipment_type_id as parent_id, equipment_name || ' ( инв. №' ||  equipment_code || ')' as name from equipments order by name;");
     QSqlQuery query;
-
     db.open();
     if(db.isOpen())
     {
@@ -526,7 +526,6 @@ void MainWindow::getComboBoxItems()
             groups << item;
         }
         db.close();
-
     }
 }
 
@@ -581,7 +580,6 @@ void MainWindow::updateServiceDetailList(int equipmentId)
 
 void MainWindow::applyFilter()
 {
-
     QString filter = leFilter->text();
     for( int i = 0; i < table_view->model()->rowCount(); ++i )
     {
@@ -595,7 +593,6 @@ void MainWindow::applyFilter()
                 break;
             }
         }
-
         int sel = cbStatus->currentIndex();
         switch(sel) {
         case 0:
@@ -613,9 +610,7 @@ void MainWindow::applyFilter()
                 match = false;
             break;
         }
-
         table_view->setRowHidden( i, !match );
-
     }
 }
 
@@ -625,7 +620,7 @@ void MainWindow::getCurrentUser()
     QString sLogin = settings.value("login", "").toString();
 
     QSqlDatabase db = QSqlDatabase::database();
-    QString sql("select equipment_user_id, equipment_user_name from equipment_users where login=:login;");
+    QString sql("select equipment_user_id, equipment_user_name, rules from equipment_users where login=:login;");
     QSqlQuery query;
 
     db.open();
@@ -646,8 +641,10 @@ void MainWindow::getCurrentUser()
         {
             currentUserId = query.value(0).toInt();
             currentUser = query.value(1).toString();
+            rules = query.value(2).toInt();
         }
 
+        setWindowTitle("Учет ремонта оборудования - " + currentUser);
         query.clear();
         db.close();
     }

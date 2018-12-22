@@ -88,6 +88,7 @@ protected:
 
     QString currentUser;
     int currentUserId;
+    int rules;
 
 
     void getCurrentUser();

@@ -12,7 +12,7 @@
 #include "dbhelper.h"
 #include "mainwindow.h"
 
-   bool DbHelper::firtsConnect = true;
+bool DbHelper::firtsConnect = true;
 
 int main(int argc, char *argv[])
 {
