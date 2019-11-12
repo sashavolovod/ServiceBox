@@ -102,7 +102,7 @@ void MainWindow::createUI()
     rightWidget = new QWidget();
     vLayout = new QVBoxLayout();
     hLayout = new QHBoxLayout();
-
+    buttonLayout = new QVBoxLayout();
     leFilter = new QLineEdit();
     cbStatus = new QComboBox();
     cbStatus->addItem("все");
@@ -117,11 +117,12 @@ void MainWindow::createUI()
 
     teMessage = new MessageEdit(this);
     teMessage->setEnabled(false);
-
+    btnNotReady = new QPushButton("Не подтверждаю", this);
+    btnNotReady->setEnabled(false);
     btnReady = new QPushButton("Подтверждаю", this);
     if((rules & 1)==1)
     {
-        btnReady = new QPushButton("Подтверждаю", this);
+        //btnReady = new QPushButton("Подтверждаю", this);
     }
     if((rules & 2)==2)
     {
@@ -131,6 +132,7 @@ void MainWindow::createUI()
     btnReady->setEnabled(false);
 
     connect(btnReady, SIGNAL (pressed()), this, SLOT (changeStatus()));
+    connect(btnNotReady, SIGNAL (pressed()), this, SLOT (changeStatus2()));
     table_view = new QTableView;
 
     load_data();
@@ -180,7 +182,12 @@ void MainWindow::createUI()
     vLayout->addLayout(hLayout);
     hLayout->addWidget(teMessage);
 
-    hLayout->addWidget(btnReady);
+    buttonLayout->addWidget(btnReady);
+
+    if(rules==1)
+        buttonLayout->addWidget(btnNotReady);
+
+    hLayout->addLayout(buttonLayout);
 
 //    hLayout->setMargin(0);
 
@@ -323,6 +330,15 @@ void MainWindow::onDetailSelectionChanged(const QItemSelection &, const QItemSel
         btnReady->setEnabled(false);
     }
 
+    if(d.status==2 && (rules & 1) == 1)
+    {
+        btnNotReady->setEnabled(true);
+    }
+    else
+    {
+        btnNotReady->setEnabled(false);
+    }
+
     teMessage->setEnabled(d.status!=0);
     updateDetail(d.serviceId);
 }
@@ -442,6 +458,42 @@ int MainWindow::getSelectedId()
     int i = table_view->currentIndex().row();
     QModelIndex index = table_view->model()->index(i, 0);
     return index.data().toInt();
+}
+
+bool MainWindow::changeStatus2()
+{
+    int row = tableDetailView->currentIndex().row();
+    if(row<0)
+        return false;
+
+    ServiceDetail s =  detailModel->getServiceDetail(row);
+
+    QSqlDatabase db = QSqlDatabase::database();
+    QString sql("update equipment_services set status = :status where equipment_service_id = :service_id;");
+    QSqlQuery query;
+    bool result=false;
+    db.open();
+    if(db.isOpen())
+    {
+        query.prepare(sql);
+        query.bindValue(":status", 1);
+        query.bindValue(":service_id", s.serviceId);
+        result = query.exec();
+        if(result == false)
+            QMessageBox::critical(this, "Ошибка сохранения", query.lastError().text());
+        else
+        {
+            load_data();
+            int row1 = table_view->currentIndex().row();
+            int row2 = tableDetailView ->currentIndex().row();
+            model->updateData();
+            table_view->selectRow(row1);
+            tableDetailView->selectRow(row2);
+        }
+    }
+    query.clear();
+    db.close();
+    return result;
 }
 
 bool MainWindow::changeStatus()
@@ -603,7 +655,10 @@ void MainWindow::applyFilter()
                 match = false;
             break;
         case 2:
-            if(table_view->model()->data(table_view->model()->index(i,3)).toString()!="неисправно")
+            if(
+                    (table_view->model()->data(table_view->model()->index(i,3)).toString()!="неисправно") &&
+                    (table_view->model()->data(table_view->model()->index(i,3)).toString()!="проверяется")
+              )
                 match = false;
             break;
         case 3:

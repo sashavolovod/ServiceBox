@@ -51,6 +51,7 @@ protected:
     QAction *actAdd;
 
     QPushButton *btnReady;
+    QPushButton *btnNotReady;
 
     QAction *minimizeAction;
     QAction *maximizeAction;
@@ -80,6 +81,7 @@ protected:
     QSplitter *hSplitter;
     QSplitter *vSplitter;
     QVBoxLayout *vLayout;
+    QVBoxLayout *buttonLayout;
     QHBoxLayout *hLayout;
     QWidget *rightWidget;
     QWidget *leftWidget;
@@ -111,6 +113,7 @@ protected slots:
     void onDetailSelectionChanged(const QItemSelection &, const QItemSelection &);
     void update();
     bool changeStatus();
+    bool changeStatus2();
     void addService();
     void applyFilter();
 };
